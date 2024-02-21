@@ -12,7 +12,7 @@ TBD
 ### Tweaks
 - Bump pyOpenSSL & cryptography for CVE-2024-0727, CVE-2023-50782 ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/716))
 ### Lang
-TBD
+- New `en_PT`
 <br><br>
 
 ## --- [4.2.3] - 2023/02/02
