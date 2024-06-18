@@ -161,11 +161,10 @@ class ServerInstance:
     stats: Stats
     stats_helper: HelperServerStats
 
-    def __init__(self, server_id, helper, management_helper, stats, file_helper, newline=os.linesep):
+    def __init__(self, server_id, helper, management_helper, stats, file_helper):
         self.helper = helper
         self.file_helper = file_helper
         self.management_helper = management_helper
-        self.newline = newline
         # holders for our process
         self.process = None
         self.line = False
@@ -232,6 +231,7 @@ class ServerInstance:
     def reload_server_settings(self):
         server_data = HelperServers.get_server_data_by_id(self.server_id)
         self.settings = server_data
+        self.settings['newline'] = self.settings.get('newline', os.linesep)
 
     def do_server_setup(self, server_data_obj):
         server_id = server_data_obj["server_id"]
@@ -579,7 +579,7 @@ class ServerInstance:
                     self.stats_helper.finish_import()
                 return False
 
-        out_buf = ServerOutBuf(self.helper, self.process, self.server_id, newline=self.newline)
+        out_buf = ServerOutBuf(self.helper, self.process, self.server_id, newline=self.settings['newline'])
 
         logger.debug(f"Starting virtual terminal listener for server {self.name}")
         threading.Thread(
@@ -986,7 +986,7 @@ class ServerInstance:
         logger.debug(f"Sending command {command} to server")
 
         # send it
-        self.process.stdin.write(f"{command}{self.newline}".encode("utf-8"))
+        self.process.stdin.write(f"{command}{self.settings['newline']}".encode("utf-8"))
         self.process.stdin.flush()
         return True
 
