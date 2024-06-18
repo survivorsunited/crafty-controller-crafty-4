@@ -88,7 +88,7 @@ def callback(called_func):
 class ServerOutBuf:
     lines = {}
 
-    def __init__(self, helper, proc, server_id, newline=os.linesep):
+    def __init__(self, helper, proc, server_id, newline=os.linesep, termstr=None):
         self.helper = helper
         self.proc = proc
         self.server_id = str(server_id)
@@ -98,8 +98,14 @@ class ServerOutBuf:
         self.line_buffer = ""
         ServerOutBuf.lines[self.server_id] = []
         self.lsi = 0
+        self.lsn = None
+        if termstr:
+            self.termstr = termstr
+            self.process_byte = self._process_byte_termstr
+        else:
+            self.process_byte = self._process_byte
 
-    def process_byte(self, char):
+    def _process_byte(self, char):
         if char == self.newline[self.lsi]:
             self.lsi += 1
         else:
@@ -109,6 +115,28 @@ class ServerOutBuf:
         if self.lsi >= len(self.newline):
             self.lsi = 0
             ServerOutBuf.lines[self.server_id].append(self.line_buffer)
+
+            self.new_line_handler(self.line_buffer)
+            self.line_buffer = ""
+            # Limit list length to self.max_lines:
+            if len(ServerOutBuf.lines[self.server_id]) > self.max_lines:
+                ServerOutBuf.lines[self.server_id].pop(0)
+
+    def _process_byte_termstr(self, char):
+        if char == self.newline[self.lsi]:
+            self.lsi += 1
+        elif char == '\r':
+            if self.line_buffer == self.termstr:
+                self.line_buffer = ""
+            return
+        else:
+            self.lsi = 0
+            self.line_buffer += char
+
+        if self.lsi >= len(self.newline):
+            self.lsi = 0
+            ServerOutBuf.lines[self.server_id].append(self.line_buffer)
+            print(repr(self.line_buffer))
 
             self.new_line_handler(self.line_buffer)
             self.line_buffer = ""
@@ -232,6 +260,7 @@ class ServerInstance:
         server_data = HelperServers.get_server_data_by_id(self.server_id)
         self.settings = server_data
         self.settings['newline'] = self.settings.get('newline', os.linesep)
+        self.settings['termstr'] = self.settings.get('termstr', None)
 
     def do_server_setup(self, server_data_obj):
         server_id = server_data_obj["server_id"]
@@ -579,7 +608,7 @@ class ServerInstance:
                     self.stats_helper.finish_import()
                 return False
 
-        out_buf = ServerOutBuf(self.helper, self.process, self.server_id, newline=self.settings['newline'])
+        out_buf = ServerOutBuf(self.helper, self.process, self.server_id, newline=self.settings['newline'], termstr=self.settings['termstr'])
 
         logger.debug(f"Starting virtual terminal listener for server {self.name}")
         threading.Thread(
