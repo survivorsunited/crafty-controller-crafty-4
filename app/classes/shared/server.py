@@ -88,10 +88,11 @@ def callback(called_func):
 class ServerOutBuf:
     lines = {}
 
-    def __init__(self, helper, proc, server_id):
+    def __init__(self, helper, proc, server_id, newline=os.linesep):
         self.helper = helper
         self.proc = proc
         self.server_id = str(server_id)
+        self.newline = newline
         # Buffers text for virtual_terminal_lines config number of lines
         self.max_lines = self.helper.get_setting("virtual_terminal_lines")
         self.line_buffer = ""
@@ -99,13 +100,13 @@ class ServerOutBuf:
         self.lsi = 0
 
     def process_byte(self, char):
-        if char == os.linesep[self.lsi]:
+        if char == self.newline[self.lsi]:
             self.lsi += 1
         else:
             self.lsi = 0
             self.line_buffer += char
 
-        if self.lsi >= len(os.linesep):
+        if self.lsi >= len(self.newline):
             self.lsi = 0
             ServerOutBuf.lines[self.server_id].append(self.line_buffer)
 
