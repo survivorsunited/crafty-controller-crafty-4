@@ -161,10 +161,11 @@ class ServerInstance:
     stats: Stats
     stats_helper: HelperServerStats
 
-    def __init__(self, server_id, helper, management_helper, stats, file_helper):
+    def __init__(self, server_id, helper, management_helper, stats, file_helper, newline=os.linesep):
         self.helper = helper
         self.file_helper = file_helper
         self.management_helper = management_helper
+        self.newline = newline
         # holders for our process
         self.process = None
         self.line = False
@@ -578,7 +579,7 @@ class ServerInstance:
                     self.stats_helper.finish_import()
                 return False
 
-        out_buf = ServerOutBuf(self.helper, self.process, self.server_id)
+        out_buf = ServerOutBuf(self.helper, self.process, self.server_id, newline=self.newline)
 
         logger.debug(f"Starting virtual terminal listener for server {self.name}")
         threading.Thread(
@@ -985,7 +986,7 @@ class ServerInstance:
         logger.debug(f"Sending command {command} to server")
 
         # send it
-        self.process.stdin.write(f"{command}\n".encode("utf-8"))
+        self.process.stdin.write(f"{command}{self.newline}".encode("utf-8"))
         self.process.stdin.flush()
         return True
 
