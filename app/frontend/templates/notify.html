@@ -44,7 +44,7 @@
       </span>
       {% else %}
       <a class="dropdown-item" id="support_logs"><i class="dropdown-item-icon mdi mdi-download-outline text-primary"></i>{{ translate('notify', 'supportLogs',
-        data['lang']) }}</i></a>
+        data['lang']) }}</a>
       {% end %}
       {% if data['superuser'] %}
       <a class="dropdown-item" href="/panel/activity_logs"><i class="dropdown-item-icon mdi mdi-calendar-check-outline text-primary"></i>{{ translate('notify',
@@ -60,13 +60,10 @@
     background: var(--purple);
     color: var(--dark);
     position: absolute;
-    -moz-transform: translate(-70%, -70%);
-    /* For Firefox */
+    /* Transform has been supported for a while, no need to add the specific feature flag for each browser */
+    transform: translate(-70%, -70%);
+    /* For Firefox, because they always do it different */
     -ms-transform: translate(-70%, -70%);
-    /* for IE */
-    -webkit-transform: translate(-70%, -70%);
-    /* For Safari, Chrome, iOS */
-    -o-transform: translate(-70%, -70%);
   }
 
   .clear-button:hover {
@@ -96,7 +93,22 @@
     console.log(data);
     let text = "";
     for (let value of data) {
-      text += `<li class="card-header header-sm justify-content-between align-items-center" id="${value.id}"><p style="float: right;"><i data-id="${value.id}"class="clear-button fa-regular fa-x"></i></p><a style="color: var(--purple);" href=${value.link} target="_blank"><h6>${value.title}</h6><small><p>${value.date}</p></small><p>${value.desc}</p></li></a>`
+      text += `
+        <li class="card-header header-sm justify-content-between align-items-center notif" id="${value.id}">
+          <div class="notif-content" style="color: var(--purple);">
+            <div class="notif-title-bar">
+              <div class="notif-metadata">
+                <a href=${value.link} target="_blank"><h6>${value.title}</h6></a>
+                <p class="notif-date-time">${value.date}</p>
+              </div>
+              <div class="notif-actions">
+                <a class="notif-button" href=${value.link} target="_blank"><i class="fa-solid fa-link"></i></a>
+                <button class="clear-button notif-button"><i data-id="${value.id}" class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+            <p class="notif-content">${value.desc}</p>
+          </div>
+        </li>`;
     }
     if (data.length > 0) {
       localStorage.setItem("notif-count", data.length);
