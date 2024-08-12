@@ -6,7 +6,7 @@
             text-danger
         {% end %}
         "></i><span id="notif-count" class="badge badge-notify" style="display: none;"></span> </a>
-    <div class="dropdown-menu dropdown-menu-right navbar-dropdown notif-div" style="width: 40vw; max-height: 80vh;"
+    <div class="dropdown-menu dropdown-menu-right navbar-dropdown notif-div"
          aria-labelledby="notifDropdown">
       <ul style="padding-top: 10px;" id="announcements">
       </ul>
@@ -98,10 +98,7 @@
   }
 
   let notifications = [];
-  let noNotificationView = `<p style='margin-top: 15px;' class='text-center'>
-    <i class="fa fa-bell-slash" aria-hidden="true"></i>
-      <p>No notifications</p>
-    </p>`; // TODO: Add translations on this
+  let noNotificationView = `<div class='no-notif'><i class="fa fa-bell-slash" aria-hidden="true"></i><p>No notifications</p></div>`; // TODO: Add translations on this
 
   function updateAnnouncements(data) {
     notifications = data;
