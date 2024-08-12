@@ -386,4 +386,21 @@ div.warnings div.wssError a:hover {
     font-weight: 800;
 }
 
+/* Clear all button */
+.notif-clear-all {
+    border: none;
+    width: fit-content;
+    padding: 10px 24px;
+    border-radius: 90px;
+    background-color: rgba(255, 255, 255, .05);
+    color: var(--purple);
+    margin-right: auto;
+    margin-left: auto;
+    transition: background-color .25s;
+    font-weight: bold;
+}
+.notif-clear-all:hover {
+    background-color: rgba(255, 255, 255, .15);
+}
+
 /**************************************************************/
