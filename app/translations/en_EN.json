@@ -235,7 +235,9 @@
         "finishedPreparing": "We've finished preparing your support logs. Please click download to download",
         "logout": "Logout",
         "preparingLogs": " Please wait while we prepare your logs... We`ll send a notification when they`re ready. This may take a while for large deployments.",
-        "supportLogs": "Support Logs"
+        "supportLogs": "Support Logs",
+        "noNotification": "No notification",
+        "clearAll": "Clear All"
     },
     "offline": {
         "offline": "Offline",

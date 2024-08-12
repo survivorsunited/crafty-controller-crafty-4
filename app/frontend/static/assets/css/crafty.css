@@ -281,3 +281,145 @@ div.warnings div.wssError a:hover {
 .hidden-input {
     margin-left: -40px;
 }
+
+/**************************************************************/
+/* CSS for notification tray */
+/**************************************************************/
+
+.badge {
+    border-radius: 50%;
+    font-weight: bold;
+
+    /* aspect ration is a new css feature but is not needed for the tag to display properly,
+    it will just make it look better on up to date browsers */
+    aspect-ratio: 1/1;
+}
+
+.notif-div {
+    --space-between-notifs: 24px;
+    border-radius: 16px !important;
+    padding: 0 !important;
+    margin-top: 24px !important;
+    box-shadow: inset 0 0 0 1px var(--outline), 0 5px 10px 0 rgba(0, 0, 0, 0.13) !important;
+    width: 40vw;
+    max-height: 80vh;
+}
+.notif-div:has(.no-notif) {
+    width: 20vw;
+}
+
+#announcements {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-between-notifs);
+    padding: 24px !important;
+}
+
+.notif {
+    background-color: transparent;
+    width: 100%;
+    padding: 0;
+    border-radius: 0 !important;
+    border: none;
+}
+.notif:not(:nth-last-of-type(1)) {
+    padding-bottom: var(--space-between-notifs);
+    border-bottom: solid 1px var(--outline);
+}
+.notif * {
+    margin: 0 !important;
+}
+.notif-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.notif .notif-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.notif .notif-metadata {
+    display: flex;
+    flex-direction: column;
+}
+.notif .notif-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.notif .notif-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px;
+    border-radius: 50%;
+    color: var(--purple);
+    aspect-ratio: 1/1;
+    border: none;
+    background: none;
+
+    transition: background-color 0.25s;
+}
+
+.notif .notif-button > i {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notif .notif-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.notif .notif-date-time {
+    font-size: 12px;
+    color: var(--base-text);
+    opacity: 0.5;
+}
+
+.notif .notif-content {
+    color: var(--base-text);
+    font-size: 14px;
+}
+
+.notif h6 {
+    color: var(--base-text);
+    font-weight: 800;
+}
+
+/* Clear all button */
+.notif-clear-all {
+    border: none;
+    width: fit-content;
+    padding: 10px 24px;
+    border-radius: 90px;
+    background-color: rgba(255, 255, 255, .05);
+    color: var(--purple);
+    margin-right: auto;
+    margin-left: auto;
+    transition: background-color .25s;
+    font-weight: bold;
+}
+.notif-clear-all:hover {
+    background-color: rgba(255, 255, 255, .15);
+}
+
+.no-notif {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    color: var(--base-text);
+}
+.no-notif p {
+    margin: 0;
+    text-align: center;
+}
+
+/**************************************************************/
