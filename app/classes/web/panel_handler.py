@@ -905,13 +905,13 @@ class PanelHandler(BaseHandler):
                 self.helper.ensure_dir_exists(
                     os.path.join(
                         self.controller.project_root,
-                        "app/frontend/static/assets/images/auth/custom",
+                        "app/frontend/static/assets/images/custom",
                     )
                 )
                 for item in os.listdir(
                     os.path.join(
                         self.controller.project_root,
-                        "app/frontend/static/assets/images/auth/custom",
+                        "app/frontend/static/assets/images/custom",
                     )
                 ):
                     if item not in page_data["backgrounds"]:

@@ -39,8 +39,10 @@ config_json_schema = {
 customize_json_schema = {
     "type": "object",
     "properties": {
-        "photo": {"type": "string"},
-        "opacity": {"type": "string"},
+        "bg_photo": {"type": "string"},
+        "bg_opacity": {"type": "string"},
+        "logo_long": {"type": "string"},
+        "logo_square": {"type" "string"},
     },
     "additionalProperties": False,
     "minProperties": 1,
@@ -302,7 +304,7 @@ class ApiCraftyCustomizeIndexHandler(BaseApiHandler):
         FileHelpers.del_file(
             os.path.join(
                 self.controller.project_root,
-                f"app/frontend/static/assets/images/auth/custom/{data['photo']}",
+                f"app/frontend/static/assets/images/custom/{data['photo']}",
             )
         )
         current = self.controller.cached_login

@@ -69,7 +69,7 @@ class ApiFilesUploadHandler(BaseApiHandler):
             u_type = "admin_config"
             self.upload_dir = os.path.join(
                 self.controller.project_root,
-                "app/frontend/static/assets/images/auth/custom",
+                "app/frontend/static/assets/images/custom",
             )
             accepted_types = IMAGE_MIME_TYPES
         elif upload_type == "import":
