@@ -166,7 +166,9 @@ class Webserver:
             serve_traceback=debug_errors,
         )
         self.https_server = tornado.httpserver.HTTPServer(app, ssl_options=cert_objects)
-        self.https_server.listen(https_port)
+        self.https_server.listen(
+            https_port, self.helper.get_setting("network_interface")
+        )
 
         logger.info(
             f"https://{Helpers.get_local_ip()}:{https_port} "
