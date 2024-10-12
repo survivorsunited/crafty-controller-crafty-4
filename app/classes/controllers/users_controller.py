@@ -82,6 +82,10 @@ class UsersController:
             },
             "manager": {"type": ["integer", "null"]},
             "theme": {"type": "string"},
+            "lang_dir": {
+                "type": "string",
+                "enum": ["ltr", "rtl"],
+            },
             "permissions": {
                 "type": "array",
                 "items": {

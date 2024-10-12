@@ -130,6 +130,17 @@ data['lang']) }}{% end %}
                         </select>
                       </div>
                       <div class="form-group">
+                        <select class="form-select form-control form-control-lg select-css" id="lang_dir"
+                          name="lang_dir" form="user_form">
+                          <option value="{{data['user'].get('lang_dir', 'ltr')}}">{{data['user'].get('lang_dir', 'ltr')}}</option>
+                          {% for dir in ["ltr", "rtl"] %}
+                          {% if dir != data['user'].get('lang_dir', 'ltr') %}
+                          <option value="{{dir}}">{{dir}}</option>
+                          {% end %}
+                          {% end %}
+                        </select>
+                      </div>
+                      <div class="form-group">
                         <label class="form-label" for="theme">{{ translate('userConfig', 'userTheme', data['lang'])
                           }}</label>
                         <select class="form-select form-control form-control-lg select-css" id="theme"
