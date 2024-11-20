@@ -41,6 +41,7 @@ class Users(BaseModel):
     valid_tokens_from = DateTimeField(default=Helpers.get_utc_now)
     server_order = CharField(default="")
     preparing = BooleanField(default=False)
+    lang_dir = CharField(default="ltr")
     hints = BooleanField(default=True)
     manager = IntegerField(default=None, null=True)
     pfp = CharField(default="/static/assets/images/faces-clipart/pic-3.png")
