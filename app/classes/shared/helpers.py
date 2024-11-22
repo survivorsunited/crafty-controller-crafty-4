@@ -527,6 +527,7 @@ class Helpers:
             "dir_size_poll_freq_minutes": 5,
             "crafty_logs_delete_after_days": 0,
             "big_bucket_repo": "https://jars.arcadiatech.org",
+            "localhost_only": False,
         }
 
     def get_all_settings(self):
@@ -599,8 +600,9 @@ class Helpers:
     def get_themes():
         return ["default", "dark", "light", "ronald"]
 
-    @staticmethod
-    def get_local_ip():
+    def get_local_ip(self):
+        if self.get_setting("localhost_only"):
+            return "localhost"
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # doesn't even have to be reachable

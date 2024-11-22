@@ -32,6 +32,7 @@ config_json_schema = {
         "dir_size_poll_freq_minutes": {"type": "integer"},
         "crafty_logs_delete_after_days": {"type": "integer"},
         "big_bucket_repo": {"type": "string"},
+        "localhost_only": {"type": "boolean"},
     },
     "additionalProperties": False,
     "minProperties": 1,

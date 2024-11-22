@@ -166,14 +166,17 @@ class Webserver:
             serve_traceback=debug_errors,
         )
         self.https_server = tornado.httpserver.HTTPServer(app, ssl_options=cert_objects)
-        self.https_server.listen(https_port)
+        if self.helper.get_setting("localhost_only"):
+            self.https_server.listen(https_port, "localhost")
+        else:
+            self.https_server.listen(https_port)
 
         logger.info(
-            f"https://{Helpers.get_local_ip()}:{https_port} "
+            f"https://{self.helper.get_local_ip()}:{https_port} "
             f"is up and ready for connections."
         )
         Console.info(
-            f"https://{Helpers.get_local_ip()}:{https_port} "
+            f"https://{self.helper.get_local_ip()}:{https_port} "
             f"is up and ready for connections."
         )
 
