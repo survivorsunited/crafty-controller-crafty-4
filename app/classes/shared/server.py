@@ -31,6 +31,7 @@ from app.classes.models.server_stats import HelperServerStats
 from app.classes.models.management import HelpersManagement, HelpersWebhooks
 from app.classes.models.users import HelperUsers
 from app.classes.models.server_permissions import PermissionsServers
+from app.classes.shared.backup_mgr import BackupManager
 from app.classes.shared.console import Console
 from app.classes.shared.helpers import Helpers
 from app.classes.shared.file_helpers import FileHelpers
@@ -183,6 +184,7 @@ class ServerInstance:
         self.stats_helper = HelperServerStats(self.server_id)
         self.last_backup_failed = False
         self.server_registry = CollectorRegistry()
+        self.backup_manager = BackupManager(self)
 
         try:
             with open(

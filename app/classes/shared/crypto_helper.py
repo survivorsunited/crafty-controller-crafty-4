@@ -1,0 +1,2 @@
+class CryptoHelper:
+    print("hi")
