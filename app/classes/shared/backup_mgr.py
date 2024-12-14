@@ -2,10 +2,14 @@ import base64
 import hashlib
 import pathlib
 import shutil
-import uuid
 import zlib
+import datetime
 
 from app.classes.shared.crypto_helper import CryptoHelper
+
+# Set byte constants
+BYTE_FALSE = bytes.fromhex("00")
+BYTE_TRUE = bytes.fromhex("01")
 
 
 class BackupManager:
@@ -13,9 +17,9 @@ class BackupManager:
         self.server_instance = server_instance
         self.crypto_helper = CryptoHelper()
 
-    # Set byte constants
-    BYTE_FALSE = bytes.fromhex("00")
-    BYTE_TRUE = bytes.fromhex("01")
+    ####################################################################################
+    ##########################   SNAPSHOT METHODS ######################################
+    ####################################################################################
 
     @staticmethod
     def blake2_hash_bytes(bytes_to_hash: bytes) -> bytes:
@@ -211,12 +215,12 @@ class BackupManager:
         # Compress bytes if set to true
         if use_compression:
             file_chunk = self.compress_bytes(file_chunk)
-            compression = self.BYTE_TRUE
+            compression = BYTE_TRUE
         else:
-            compression = self.BYTE_FALSE
+            compression = BYTE_FALSE
 
         # Placeholder for encryption
-        encryption = self.BYTE_FALSE
+        encryption = BYTE_FALSE
         nonce = bytes.fromhex("000000000000000000000000")
 
         # Create Chunk
@@ -321,16 +325,21 @@ class BackupManager:
         """
         return self.b64_to_bytes(input_b64).decode("utf-8")
 
-    def backup(self) -> uuid.UUID:
+    def backup(self, conf: dict) -> None:
         """
         Perform the backup.
-        Iterate over files in source dir. Apply save function. Save file information to manifest.
+        Iterate over files in source dir. Apply save function.
+        Save file information to manifest.
         :return: UUID of backup.
         """
-        # Initialize backup stuff.
-        backup_id = uuid.uuid4()
-        source_path = pathlib.Path(__file__).parent / "source_files"
-        repo_path = pathlib.Path(__file__).parent / "backup_repository"
+        # Initialize backup stuff.\
+        backup_id = str(
+            datetime.datetime.now()
+            .astimezone(self.server_instance.tz)
+            .strftime("%Y-%m-%d_%H-%M-%S")
+        )
+        source_path = pathlib.Path(self.server_instance.server_path)
+        repo_path = pathlib.Path(conf["backup_location"]) / "snapshots"
         manifest_path = repo_path / "manifests" / f"{str(backup_id)}.manifest"
 
         # Get list of files to backup.
@@ -373,7 +382,6 @@ class BackupManager:
 
         # Backup complete
         manifest_file.close()
-        return backup_id
 
     def recover(
         self,
@@ -505,10 +513,14 @@ class BackupManager:
         # Read use compression byte
         use_compression_byte = chunk_file.read(1)
 
-        if use_compression_byte == self.BYTE_TRUE:
+        if use_compression_byte == BYTE_TRUE:
             try:
                 return self.decompress_bytes(chunk_file.read())
             except zlib.error as why:
                 raise RuntimeError(f"Unable to decompress file {chunk_path}.") from why
         else:
             return chunk_file.read()
+
+    ####################################################################################
+    ##########################   LEGACY BACKUP METHODS #################################
+    ####################################################################################

@@ -1,2 +1,3 @@
 class CryptoHelper:
-    print("hi")
+    def __init__(self):
+        return
