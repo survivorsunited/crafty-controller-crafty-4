@@ -52,7 +52,7 @@
               {% end %}
 
               <br>
-              {% if not data['backing_up'] %}
+              {% if not data['backing_up'] and not data.get("new_backup", False) %}
               <div id="backup_button" class="form-group">
                 <button class="btn btn-primary" id="backup_now_button">{{ translate('serverBackups', 'backupNow',
                   data['lang']) }}</button>
@@ -95,6 +95,17 @@
                     value="{{ data['backup_config']['max_backups']  }}"
                     placeholder="{{ translate('serverBackups', 'maxBackups', data['lang']) }}">
                 </div>
+                {% if data.get("new_backup", False) %}
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="snapshot" name="snapshot" checked="">
+                    <label for="snapshot" class="custom-control-label">{{ translate('serverBackups', 'snapshot',
+                      data['lang']) }}&nbsp;<span data-toggle="tooltip"
+                        title="{{ translate('serverBackups', 'betaDisclaimer', data['lang'])}}"
+                        class="badge badge-warning">BETA</span></label>
+                  </div>
+                </div>
+                {% end %}
                 <div class="form-group">
                   <div class="custom-control custom-switch">
                     {% if data['backup_config']['compress'] %}
@@ -468,6 +479,10 @@
       //We need to make sure these are sent regardless of whether or not they're checked
       formDataObject.compress = $("#compress").prop('checked');
       formDataObject.shutdown = $("#shutdown").prop('checked');
+      // Only add snapshot if we're making a new backup
+      if (!backup_id) {
+        formDataObject.snapshot = $("#snapshot").prop('checked');
+      }
       if ($("#root_files_button").hasClass("clicked")) {
         excluded = []
         $('input.excluded:checkbox:checked').each(function () {
