@@ -116,6 +116,7 @@ class Backups(BaseModel):
     after = CharField(default="")
     default = BooleanField(default=False)
     status = CharField(default='{"status": "Standby", "message": ""}')
+    snapshot = BooleanField(default=False)
     enabled = BooleanField(default=True)
 
     class Meta:
