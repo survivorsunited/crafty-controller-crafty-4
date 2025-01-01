@@ -676,6 +676,61 @@ class Controller:
             return False
         return True
 
+    def import_jar_server(
+        self,
+        server_name: str,
+        server_path: str,
+        server_jar: str,
+        min_mem: int,
+        max_mem: int,
+        port: int,
+        user_id: int,
+    ):
+        server_id = Helpers.create_uuid()
+        new_server_dir = os.path.join(self.helper.servers_dir, server_id)
+        if Helpers.is_os_windows():
+            new_server_dir = Helpers.wtol_path(new_server_dir)
+            backup_path = Helpers.wtol_path(backup_path)
+            new_server_dir.replace(" ", "^ ")
+            server_path.replace(" ", "^ ")
+
+        Helpers.ensure_dir_exists(new_server_dir)
+        Helpers.ensure_dir_exists(server_path)
+
+        full_jar_path = os.path.join(new_server_dir, server_jar)
+
+        if Helpers.is_os_windows():
+            server_command = (
+                f"java -Xms{Helpers.float_to_string(min_mem)}M "
+                f"-Xmx{Helpers.float_to_string(max_mem)}M "
+                f'-jar "{full_jar_path}" nogui'
+            )
+        else:
+            server_command = (
+                f"java -Xms{Helpers.float_to_string(min_mem)}M "
+                f"-Xmx{Helpers.float_to_string(max_mem)}M "
+                f"-jar {full_jar_path} nogui"
+            )
+        logger.debug("command: " + server_command)
+        server_log_file = "./logs/latest.log"
+        server_stop = "stop"
+
+        new_id = self.register_server(
+            server_name,
+            server_id,
+            new_server_dir,
+            server_command,
+            server_jar,
+            server_log_file,
+            server_stop,
+            port,
+            user_id,
+            server_type="minecraft-java",
+        )
+        ServersController.set_import(new_id)
+        self.import_helper.import_jar_server(server_path, new_server_dir, port, new_id)
+        return new_id
+
     def restore_java_zip_server(
         self,
         server_name: str,
