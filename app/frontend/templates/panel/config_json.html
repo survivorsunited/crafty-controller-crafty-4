@@ -148,7 +148,7 @@
 {% block js %}
 <script>
   function replacer(key, value) {
-    if (key == "disabled_language_files" || key == "monitored_mounts") {
+    if (key == "disabled_language_files" || key == "monitored_mounts" || key == "keywords") {
       if (value == 0) {
         return []
       } else {
@@ -177,6 +177,7 @@
     formDataObject.disabled_language_files = $('#lang_select').val();
     formDataObject.monitored_mounts = $('#mount_select').val();
     formDataObject.keywords = $('#keywords').val().split(",");
+
     $('#config-form input[type="radio"]:checked').each(function () {
       if ($(this).val() == 'True') {
         formDataObject[this.name] = true;
@@ -184,11 +185,9 @@
         formDataObject[this.name] = false;
       }
     });
-    console.log(formDataObject);
+
     // Format the plain form data as JSON
     let formDataJsonString = JSON.stringify(formDataObject, replacer);
-
-    console.log(formDataJsonString);
 
     let res = await fetch(`/api/v2/crafty/config/`, {
       method: 'PATCH',
