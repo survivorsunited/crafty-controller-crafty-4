@@ -30,6 +30,7 @@ session.lock
 .header
 default.json
 .vscode/
+.vs/
 .DS_Store
 .DS_STORE
 
