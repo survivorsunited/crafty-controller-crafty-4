@@ -43,11 +43,7 @@
                     id="steam_server" data-live-search="true" name="app_id">
                     <option value="None">None</option>
                     {% for s in data['servers'] %}
-                    {% if data["windows"] and s["windows"] %}
                     <option value="{{ s['appid'] }}">{{ s["name"].capitalize() }}</option>
-                    {% elif not data["windows"] and s["linux"] %}
-                    <option value="{{ s['appid'] }}">{{ s["name"].capitalize() }}</option>
-                    {% end %}
                     {% end %}
                   </select>
 
