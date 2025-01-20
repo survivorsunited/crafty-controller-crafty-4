@@ -486,7 +486,6 @@ class Controller:
                     f"-Xmx{_gibs_to_mibs(max_mem)}M "
                     f"-jar {_wrap_jar_if_windows()} nogui"
                 )
-
         elif data["create_type"] == "minecraft_bedrock":
             if root_create_data["create_type"] == "import_server":
                 existing_server_path = Helpers.get_os_understandable_path(
@@ -544,9 +543,9 @@ class Controller:
                 server_file = server_file_new
         elif data["create_type"] == "steam_cmd":
             server_file = "steamcmd.exe"
-            full_jar_path = os.path.join(new_server_path, server_file)
+            full_app_path = os.path.join(new_server_path, server_file)
             if Helpers.is_os_windows():
-                server_command = f'"{full_jar_path}"'
+                server_command = f'"{full_app_path}"'
             else:
                 server_command = f"./{server_file}"
         stop_command = data.get("stop_command", "")

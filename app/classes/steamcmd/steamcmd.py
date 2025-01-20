@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import platform
@@ -166,6 +167,46 @@ class SteamCMD:
         steam_command = SteamCMDcommand()
         return self.execute(steam_command)
 
+    def app_info(
+        self,
+        app_id: int,
+    ):
+        """Retrieve app information for the given app_id using SteamCMD.
+        :param app_id (int): The Steam app ID to query.
+        :return: dict: Parsed JSON data from the app info output, or None if parsing fails.
+        """
+        steam_command = SteamCMDcommand()
+        steam_command.custom(f"+app_info_print {app_id} +app_status {app_id}")
+
+        data: str = self.execute(steam_command, output=True)
+
+        # TODO: I will fix this mess later, It took me long enough to just get it working. - lino
+        text = data.decode()
+        text = text.split("{", 1)[1].rsplit("}", 2)[0]
+
+        # Attempt to turn returned output into working json
+        replacements = {
+            '\r': '',
+            '"\t\t"': '":"',
+            '\t': '',
+            '"\n"': '",\n"',
+            '"\n{': '":\n{',
+            '}\n': '},\n',
+            '\n': ''
+        }
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+
+        cleaned_text = "{" + text + "}"
+        cleaned_string = re.sub(r",\s*([}\]])", r"\1", cleaned_text)
+
+        try:
+            parsed_json = json.loads(cleaned_string)
+            return parsed_json
+        except json.JSONDecodeError as e:
+            logger.warning("Failed to parse JSON:", e)
+            return {}
+
     def app_update(
         self,
         app_id: int,
@@ -221,7 +262,7 @@ class SteamCMD:
         steam_command.workshop_download_item(app_id, workshop_id, validate)
         return self.execute(steam_command, n_tries)
 
-    def execute(self, cmd: SteamCMDcommand, n_tries: int = 1):
+    def execute(self, cmd: SteamCMDcommand, n_tries: int = 1, output: bool = False):
         """
         Executes a SteamCMD_command, with added actions occurring sequentially.
         May retry multiple times on timeout due to valves' timeout on large downloads.
@@ -245,7 +286,10 @@ class SteamCMD:
         )
         logger.debug("Parameters used: ".join(params))
         try:
-            return subprocess.check_call(" ".join(params), shell=True)
+            if not output:
+                return subprocess.check_call(" ".join(params), shell=True)
+            else:
+                return subprocess.check_output(" ".join(params), shell=True)
 
         except subprocess.CalledProcessError as e:
             # SteamCMD has a habit of timing out large downloads,

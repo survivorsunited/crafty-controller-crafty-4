@@ -7,7 +7,7 @@
   href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.10/css/bootstrap-select.min.css">
 
 <div class="content-wrapper">
-  <ul class="nav nav-tabs col-md-12 tab-simple-styled " role="tablist">
+  <ul class="nav nav-pills col-md-12 tab-simple-styled " role="tablist">
     <li class="nav-item term-nav-item">
       <a class="nav-link" href="/server/step1" role="tab" aria-selected="false">
         <i class="fas fa-file-signature"></i>Minecraft-Java</a>
@@ -43,11 +43,7 @@
                     id="steam_server" data-live-search="true" name="app_id">
                     <option value="None">None</option>
                     {% for s in data['servers'] %}
-                    {% if data["windows"] and s["windows"] %}
                     <option value="{{ s['appid'] }}">{{ s["name"].capitalize() }}</option>
-                    {% elif not data["windows"] and s["linux"] %}
-                    <option value="{{ s['appid'] }}">{{ s["name"].capitalize() }}</option>
-                    {% end %}
                     {% end %}
                   </select>
 

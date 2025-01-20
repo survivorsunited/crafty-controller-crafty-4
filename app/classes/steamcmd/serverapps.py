@@ -14,55 +14,49 @@ class SteamApps:
     #####  Dedicated Server List Retrival  #####
     ############################################
 
-    def _get_dedicated_server_list(self):
-        """Get Steam Dedicated Server AppIDs
-
-        Gets the complete list of 'dedicated server' apps from
-        dgibbs64's SteamCMD-AppID-List-Servers Repo.
+    def _get_dedicated_server_list(self, sort_by="name"):
+        """Fetches a list of all Steam apps and filters apps with 'server' in their name.
 
         This repository stores every dedicated server AppID and its name available
         on Steam by grabbing the info from the SteamAPI and filtering for the word
         'server'. Remote Data refreshes on "0 0 * * *"
 
-        NOTE: I'm not happy about pulling data from a github repo and would prefer we
-        processed it from the Steam API ourselfs, so we don't have an additional
-        failure point, but that would actually require SteamCMD to parse and honestly
-        this will do for now. Can revisit at a later date, after we actually
-        implement SteamCMD.
+        Args:
+            sort_by (str): The key to sort the results by. Can be 'appid' or 'name'.
 
         Returns:
             list:
                 {
                     "appid": (int),
-                    "subscriptionlinux": release status?(str),
-                    "linux": (bool),
-                    "subscriptionwindows": release status?(str),
-                    "windows": (bool),
                     "name": name of dedicated server(str)
                 }
         """
-        raw_github_org = "https://raw.githubusercontent.com/dgibbs64"
-        project_repo = "SteamCMD-AppID-List-Servers"
-        branch = "master"
-        file = "steamcmd_appid_servers.json"
-
-        full_url = f"{raw_github_org}/{project_repo}/{branch}/{file}"
-
-        # Request remote SteamApps list from github
+        steam_applist_url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
+        
         try:
-            response = requests.get(full_url, timeout=2)
-            response.raise_for_status()
-            api_data = json.loads(response.content)
-        except Exception as e:
-            logger.error(f"Unable to load {full_url} due to error: {e}")
-            return {}
+            response = requests.get(steam_applist_url)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            app_list = response.json()
 
-        # Return empty list on broken response
-        if api_data == "404: Not Found":
-            logger.error("AppList json not found on repository")
+            # Filter apps with 'server' in their name (case insensitive)
+            server_apps = [
+                {"appid": app["appid"], "name": app["name"]}
+                for app in app_list["applist"]["apps"]
+                if "server" in app["name"].lower()
+            ]
+
+            # Remove duplicates by converting to a dictionary keyed by appid, then back to a list
+            unique_apps = {app["appid"]: app for app in server_apps}.values()
+
+            # Sort the unique apps
+            if sort_by in {"appid", "name"}:
+                unique_apps = sorted(unique_apps, key=lambda x: x[sort_by])
+
+            return unique_apps
+
+        except requests.exceptions.RequestException as err:
+            logger.error(f"AppList json not found on repository, Reason: {err}")
             return []
-
-        return api_data
 
     ############################
     ##### CACHE MANAGEMENT #####
