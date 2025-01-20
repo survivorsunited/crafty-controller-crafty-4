@@ -230,10 +230,6 @@ class ImportHelpers:
         download_thread.start()
 
     def create_steam_server(self, app_id, server_id, server_dir, server_exe):
-        # TODO: what is the server exe called @zedifus
-        # @pretzel As we are not able to use steamcmd to launch game it
-        # is not possible to be populate as we dont know the executable.
-        server_exe = "game.exe"
 
         # Initiate SteamCMD & game installing status.
         ServersController.set_import(server_id)
@@ -255,13 +251,35 @@ class ImportHelpers:
         # Install the game server files.
         self.steam.app_update(app_id, gamefiles_path)
 
-        # Set the server execuion command. TODO brainstorm how to approach.
-        full_jar_path = os.path.join(steamcmd_path, server_exe)
+        # Set the server execution command
+        server_obj = ServersController.get_server_obj(server_id)
+        app_info = self.steam.app_info(app_id)
+        cmd_linux = cmd_macos = cmd_windows = 0
+        logger.debug(f"App info: {app_info}")
+
+        for index, launch_cmd in app_info["config"]["launch"].items():
+            lc_config = launch_cmd.get("config", {})
+            lc_os = lc_config.get("oslist")
+
+            if lc_os:
+                if lc_os == "windows":
+                    cmd_windows = index
+                elif lc_os == "linux":
+                    cmd_linux = index
+                elif lc_os == "macos":
+                    cmd_macos = index
+
         if Helpers.is_os_windows():
-            server_command = f'"{full_jar_path}"'  # TODO why called jar
+            launch_data = app_info["config"]["launch"][cmd_windows]
+            server_command = f'"{os.path.join(gamefiles_path, launch_data.get("executable", "UNKNOWN"))}" {launch_data.get("arguments", "")}'
         else:
-            server_command = f"./{server_exe}"
+            launch_data = app_info["config"]["launch"][cmd_linux]
+            server_command = f"{os.path.join(gamefiles_path, launch_data.get("executable", "UNKNOWN"))} {launch_data.get("arguments", "")}"
+
         logger.debug("command: " + server_command)
+
+        server_obj.execution_command = server_command
+        ServersController.update_server(server_obj)
 
         # Finalise SteamCMD & game installing status.
         ServersController.finish_import(server_id)

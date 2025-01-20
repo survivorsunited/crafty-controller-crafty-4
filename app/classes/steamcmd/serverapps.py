@@ -52,7 +52,7 @@ class SteamApps:
             if sort_by in {"appid", "name"}:
                 unique_apps = sorted(unique_apps, key=lambda x: x[sort_by])
 
-            return list(unique_apps)
+            return unique_apps
 
         except requests.exceptions.RequestException as err:
             logger.error(f"AppList json not found on repository, Reason: {err}")

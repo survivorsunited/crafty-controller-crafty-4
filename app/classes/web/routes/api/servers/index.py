@@ -462,7 +462,7 @@ new_server_schema = {
             ],
         },
         "steam_cmd_create_data": {
-            "title": "Minecraft Bedrock creation data",
+            "title": "Steam server creation data",
             "type": "object",
             "required": ["create_type"],
             "properties": {
