@@ -1310,6 +1310,33 @@ class ServerInstance:
                 f"Error putting backup file list for server with ID: {self.server_id}"
             )
             return []
+        if backup_config["snapshot"]:
+            backup_location = os.path.join(
+                backup_config["backup_location"],
+                "snapshots",
+                "manifests",
+            )
+            if not Helpers.check_path_exists(
+                Helpers.get_os_understandable_path(backup_location)
+            ):
+                return []
+            files = Helpers.get_human_readable_files_sizes(
+                Helpers.list_dir_by_date(
+                    Helpers.get_os_understandable_path(backup_location)
+                )
+            )
+            print(files)
+            return [
+                {
+                    "path": os.path.relpath(
+                        f["path"],
+                        start=Helpers.get_os_understandable_path(backup_location),
+                    ),
+                    "size": f["size"],
+                }
+                for f in files
+                if f["path"].endswith(".manifest")
+            ]
         backup_location = os.path.join(
             backup_config["backup_location"], backup_config["backup_id"]
         )
