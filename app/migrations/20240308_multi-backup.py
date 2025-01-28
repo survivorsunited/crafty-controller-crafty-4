@@ -29,9 +29,8 @@ def migrate(migrator: Migrator, database, **kwargs):
         MigrateHistory.name == "20240308_multi-backup"
     )
     if this_migration is not None:
-        Console.debug("Multi-Backup update database already done, skipping this part")
+        Console.debug("Update database already done, skipping this part")
         return
-
     backup_migration_status = True
     schedule_migration_status = True
     db = database
