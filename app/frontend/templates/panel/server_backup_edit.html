@@ -86,7 +86,7 @@
                 {% if data.get("new_backup", False) %}
                 <div class="form-group">
                   <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="snapshot" name="snapshot" checked="">
+                    <input type="checkbox" class="custom-control-input" id="snapshot" name="snapshot" >
                     <label for="snapshot" class="custom-control-label">{{ translate('serverBackups', 'snapshot',
                       data['lang']) }}&nbsp;<span data-toggle="tooltip"
                         title="{{ translate('serverBackups', 'betaDisclaimer', data['lang'])}}"
