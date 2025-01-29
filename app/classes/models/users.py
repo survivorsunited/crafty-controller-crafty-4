@@ -21,6 +21,9 @@ from app.classes.models.roles import Roles, HelperRoles
 
 logger = logging.getLogger(__name__)
 
+PLACEHOLDER_EMAIL = "default@example.com"
+PLACEHOLDER_TIME = "10/24/2019, 11:34:00"
+
 
 # **********************************************************************************
 #                                   Users Class
@@ -33,7 +36,7 @@ class Users(BaseModel):
     last_ip = CharField(default="")
     username = CharField(default="", unique=True, index=True)
     password = CharField(default="")
-    email = CharField(default="default@example.com")
+    email = CharField(default=PLACEHOLDER_EMAIL)
     enabled = BooleanField(default=True)
     superuser = BooleanField(default=False)
     lang = CharField(default="en_EN")
@@ -161,13 +164,13 @@ class HelperUsers:
         if user_id == 0:
             return {
                 "user_id": 0,
-                "created": "10/24/2019, 11:34:00",
-                "last_login": "10/24/2019, 11:34:00",
-                "last_update": "10/24/2019, 11:34:00",
+                "created": PLACEHOLDER_TIME,
+                "last_login": PLACEHOLDER_TIME,
+                "last_update": PLACEHOLDER_TIME,
                 "last_ip": "127.27.23.89",
                 "username": "SYSTEM",
                 "password": None,
-                "email": "default@example.com",
+                "email": PLACEHOLDER_EMAIL,
                 "enabled": True,
                 "superuser": True,
                 "roles": [],
@@ -241,7 +244,7 @@ class HelperUsers:
     def add_rawpass_user(
         username: str,
         password: str = "",
-        email: t.Optional[str] = "default@example.com",
+        email: t.Optional[str] = PLACEHOLDER_EMAIL,
         enabled: bool = True,
         superuser: bool = False,
     ) -> str:
