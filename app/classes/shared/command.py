@@ -36,7 +36,9 @@ class MainPrompt(cmd.Cmd):
         self.prompt = ""
 
     def emptyline(self):
-        pass
+        """_summary_
+        Creates an empty line in the terminal for spacing
+        """
 
     def do_exit(self, _line):
         self.tasks_manager._main_graceful_exit()
@@ -64,20 +66,16 @@ class MainPrompt(cmd.Cmd):
             Console.info("Unknown migration command")
 
     def do_set_passwd(self, line):
-        try:
-            username = str(line).lower()
-            # If no user is found it returns None
-            user_id = self.controller.users.get_id_by_name(username)
-            if not username:
-                Console.error("You must enter a username. Ex: `set_passwd admin'")
-                return False
-            if not user_id:
-                Console.error(
-                    f"No user found by the name of {username} this is case sensitive"
-                )
-                return False
-        except:
-            Console.error(f"User: {line} Not Found")
+        username = str(line).lower()
+        # If no user is found it returns None
+        user_id = self.controller.users.get_id_by_name(username)
+        if not username:
+            Console.error("You must enter a username. Ex: `set_passwd admin'")
+            return False
+        if not user_id:
+            Console.error(
+                f"No user found by the name of {username} this is case sensitive"
+            )
             return False
         # get new password from user
         new_pass = getpass.getpass(prompt=f"NEW password for: {username} > ")
