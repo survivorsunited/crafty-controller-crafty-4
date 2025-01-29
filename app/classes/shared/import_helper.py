@@ -31,7 +31,7 @@ class ImportHelpers:
 
     def import_threaded_jar_server(self, server_path, new_server_dir, port, new_id):
         for item in os.listdir(server_path):
-            if not item == "db_stats":
+            if item != "db_stats":
                 try:
                     if os.path.isdir(os.path.join(server_path, item)):
                         FileHelpers.copy_dir(
@@ -127,7 +127,7 @@ class ImportHelpers:
         self, server_path, new_server_dir, port, full_jar_path, new_id
     ):
         for item in os.listdir(server_path):
-            if not item == "db_stats":
+            if item != "db_stats":
                 try:
                     if os.path.isdir(os.path.join(server_path, item)):
                         FileHelpers.copy_dir(
@@ -156,9 +156,8 @@ class ImportHelpers:
             ) as file:
                 file.write(f"server-port={port}")
                 file.close()
-        if os.name != "nt":
-            if Helpers.check_file_exists(full_jar_path):
-                os.chmod(full_jar_path, 0o2760)
+        if os.name != "nt" and Helpers.check_file_exists(full_jar_path):
+            os.chmod(full_jar_path, 0o2760)
         ServersController.finish_import(new_id)
         server_users = PermissionsServers.get_server_user_list(new_id)
         for user in server_users:
@@ -210,9 +209,8 @@ class ImportHelpers:
         server_users = PermissionsServers.get_server_user_list(new_id)
         for user in server_users:
             WebSocketManager().broadcast_user(user, "send_start_reload", {})
-        if os.name != "nt":
-            if Helpers.check_file_exists(full_jar_path):
-                os.chmod(full_jar_path, 0o2760)
+        if os.name != "nt" and Helpers.check_file_exists(full_jar_path):
+            os.chmod(full_jar_path, 0o2760)
         # deletes temp dir
         FileHelpers.del_dirs(temp_dir)
 
