@@ -518,7 +518,7 @@ class Controller:
         elif data["create_type"] == "custom":
             # TODO: working_directory, executable_update
             if root_create_data["create_type"] == "raw_exec":
-                pass
+                raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
             elif root_create_data["create_type"] == "import_server":
                 existing_server_path = Helpers.get_os_understandable_path(
                     create_data["existing_server_path"]
@@ -824,7 +824,7 @@ class Controller:
             server_exe,
             server_log_file,
             server_stop,
-            "19132",
+            19132,
             user_id,
             server_type="minecraft-bedrock",
         )
