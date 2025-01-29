@@ -39,6 +39,7 @@ from app.classes.shared.websocket_manager import WebSocketManager
 logger = logging.getLogger(__name__)
 
 STRING_TIME_FORMAT = "%d/%m/%Y %H:%M:%S"
+NOT_IMPLEMENTED_ERROR = "Not yet implemented"
 
 
 class Controller:
@@ -429,7 +430,7 @@ class Controller:
             elif root_create_data["create_type"] == "import_zip":
                 # TODO: Copy files from the zip file to the new server directory
                 server_file = create_data["jarfile"]
-                raise NotImplementedError("Not yet implemented")
+                raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
                 # self.import_helper.import_java_zip_server()
             if data["create_type"] == "minecraft_java":
                 _create_server_properties_if_needed(
@@ -497,7 +498,7 @@ class Controller:
                 server_file = create_data["executable"]
             elif root_create_data["create_type"] == "import_zip":
                 # TODO: Copy files from the zip file to the new server directory
-                raise NotImplementedError("Not yet implemented")
+                raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
             else:
                 server_file = "bedrock_server"
                 if Helpers.is_os_windows():
@@ -527,7 +528,7 @@ class Controller:
                     logger.error(f"Server import failed with error: {ex}")
             elif root_create_data["create_type"] == "import_zip":
                 # TODO: Copy files from the zip file to the new server directory
-                raise NotImplementedError("Not yet implemented")
+                raise NotImplementedError(NOT_IMPLEMENTED_ERROR)
 
             _create_server_properties_if_needed(0, True)
 
