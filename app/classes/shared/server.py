@@ -830,7 +830,7 @@ class ServerInstance:
             logger.info(f"Detected crash detection shut off for server {self.name}")
             try:
                 self.server_scheduler.remove_job("c_" + str(self.server_id))
-            except:
+            except JobLookupError:
                 logger.error(
                     f"Removing crash watcher for server {self.name} failed. "
                     f"Assuming it was never started."
@@ -852,7 +852,7 @@ class ServerInstance:
                 self.server_scheduler.add_job(
                     self.detect_crash, "interval", seconds=30, id=f"c_{self.server_id}"
                 )
-            except:
+            except ConflictingIdError:
                 logger.info(f"Job with id c_{self.server_id} already running...")
 
     def stop_threaded_server(self):
@@ -873,7 +873,7 @@ class ServerInstance:
             logger.info(f"Removing crash watcher for server {self.name}")
             try:
                 self.server_scheduler.remove_job("c_" + str(self.server_id))
-            except:
+            except JobLookupError:
                 logger.error(
                     f"Removing crash watcher for server {self.name} failed. "
                     f"Assuming it was never started."
