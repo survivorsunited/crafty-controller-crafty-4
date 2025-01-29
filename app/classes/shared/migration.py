@@ -1,5 +1,4 @@
 # pylint: skip-file
-from datetime import datetime
 import logging
 import typing as t
 import sys
@@ -44,7 +43,7 @@ class MigrateHistory(peewee.Model):
     """
 
     name = peewee.CharField(unique=True)
-    migrated_at = peewee.DateTimeField(default=datetime.utcnow)
+    migrated_at = peewee.DateTimeField(default=Helpers.get_utc_now)
 
     # noinspection PyTypeChecker
     def __unicode__(self) -> str:
@@ -383,7 +382,7 @@ class MigrationManager(object):
         """
         Compiles a migration.
         """
-        name = datetime.utcnow().strftime("%Y%m%d%H%M%S") + "_" + name
+        name = Helpers.get_utc_now().strftime("%Y%m%d%H%M%S") + "_" + name
         filename = name + ".py"
         path = os.path.join(self.helper.migration_dir, filename)
         with open(path, "w") as f:
@@ -426,7 +425,6 @@ class MigrationManager(object):
             Console.info("There is nothing to migrate")
             return done
 
-        migrator = self.migrator
         for mname in diff:
             done.append(self.up_one(mname, self.migrator))
             if name and name == mname:
