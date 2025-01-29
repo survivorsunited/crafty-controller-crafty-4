@@ -41,6 +41,7 @@ logger = logging.getLogger(__name__)
 STRING_TIME_FORMAT = "%d/%m/%Y %H:%M:%S"
 NOT_IMPLEMENTED_ERROR = "Not yet implemented"
 COMMAND_LOG_PREFIX = "command: %s"
+PANEL_CONFIG_URL = "/panel/panel_config"
 
 
 class Controller:
@@ -879,9 +880,8 @@ class Controller:
         self.import_helper.import_bedrock_zip_server(
             temp_dir, new_server_dir, full_jar_path, port, new_id
         )
-        if os.name != "nt":
-            if Helpers.check_file_exists(full_jar_path):
-                os.chmod(full_jar_path, 0o2760)
+        if os.name != "nt" and Helpers.check_file_exists(full_jar_path):
+            os.chmod(full_jar_path, 0o2760)
 
         return new_id
 
@@ -1046,7 +1046,7 @@ class Controller:
         new_server_path = self.helper.wtol_path(new_server_path)
         new_server_path = os.path.join(new_server_path, "servers")
         WebSocketManager().broadcast_page(
-            "/panel/panel_config", "move_status", "Checking dir"
+            PANEL_CONFIG_URL, "move_status", "Checking dir"
         )
         current_master = self.helper.wtol_path(
             HelpersManagement.get_master_server_dir()
@@ -1056,7 +1056,7 @@ class Controller:
                 "Admin tried to change server dir to current server dir. Canceling..."
             )
             WebSocketManager().broadcast_page(
-                "/panel/panel_config",
+                PANEL_CONFIG_URL,
                 "move_status",
                 "done",
             )
@@ -1067,14 +1067,14 @@ class Controller:
                 " current server dir. This will result in a copy loop."
             )
             WebSocketManager().broadcast_page(
-                "/panel/panel_config",
+                PANEL_CONFIG_URL,
                 "move_status",
                 "done",
             )
             return
 
         WebSocketManager().broadcast_page(
-            "/panel/panel_config", "move_status", "Checking permissions"
+            PANEL_CONFIG_URL, "move_status", "Checking permissions"
         )
         if not self.helper.ensure_dir_exists(new_server_path):
             WebSocketManager().broadcast_user(
@@ -1102,7 +1102,7 @@ class Controller:
             )
             if os.path.isdir(server_path):
                 WebSocketManager().broadcast_page(
-                    "/panel/panel_config",
+                    PANEL_CONFIG_URL,
                     "move_status",
                     f"Moving {server.get('server_name')}",
                 )
@@ -1143,7 +1143,7 @@ class Controller:
         self.servers.init_all_servers()
         self.helper.dir_migration = False
         WebSocketManager().broadcast_page(
-            "/panel/panel_config",
+            PANEL_CONFIG_URL,
             "move_status",
             "done",
         )
