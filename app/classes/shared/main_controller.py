@@ -38,6 +38,8 @@ from app.classes.shared.websocket_manager import WebSocketManager
 
 logger = logging.getLogger(__name__)
 
+STRING_TIME_FORMAT = "%d/%m/%Y %H:%M:%S"
+
 
 class Controller:
     def __init__(self, database, helper, file_helper, import_helper):
@@ -96,22 +98,20 @@ class Controller:
                 "login": {
                     "names": [username],
                     "attempts": 1,
-                    "times": [datetime.now().strftime("%d/%m/%Y %H:%M:%S")],
+                    "times": [datetime.now().strftime(STRING_TIME_FORMAT)],
                 }
             }
             return
         if remote.get("login", None):
             remote["login"]["names"].append(username)
             remote["login"]["attempts"] += 1
-            remote["login"]["times"].append(
-                datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            )
+            remote["login"]["times"].append(datetime.now().strftime(STRING_TIME_FORMAT))
             self.auth_tracker[str(remote_ip)] = remote
         else:
             self.auth_tracker[str(remote_ip)]["login"] = {
                 "names": [username],
                 "attempts": 1,
-                "times": [datetime.now().strftime("%d/%m/%Y %H:%M:%S")],
+                "times": [datetime.now().strftime(STRING_TIME_FORMAT)],
             }
 
     def log_antilockout(self, remote_ip):
@@ -120,20 +120,20 @@ class Controller:
             self.auth_tracker[str(remote_ip)] = {
                 "anti-lockout": {
                     "attempts": 1,
-                    "times": [datetime.now().strftime("%d/%m/%Y %H:%M:%S")],
+                    "times": [datetime.now().strftime(STRING_TIME_FORMAT)],
                 }
             }
             return
         if remote.get("anti-lockout", None):
             remote["anti-lockout"]["attempts"] += 1
             remote["anti-lockout"]["times"].append(
-                datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                datetime.now().strftime(STRING_TIME_FORMAT)
             )
             self.auth_tracker[str(remote_ip)] = remote
         else:
             self.auth_tracker[str(remote_ip)]["anti-lockout"] = {
                 "attempts": 1,
-                "times": [datetime.now().strftime("%d/%m/%Y %H:%M:%S")],
+                "times": [datetime.now().strftime(STRING_TIME_FORMAT)],
             }
 
     def write_auth_tracker(self):
@@ -338,7 +338,7 @@ class Controller:
         master_config = Helpers.get_master_config()
         try:
             user_config = self.helper.get_all_settings()
-        except:
+        except FileNotFoundError:
             # Call helper to set updated config.
             Console.warning("No Config found. Setting Default Config.json")
             user_config = master_config
@@ -372,7 +372,7 @@ class Controller:
     def send_log_status(self):
         try:
             return self.log_stats
-        except:
+        except NameError:
             return {"percent": 0, "total_files": 0}
 
     def create_api_server(self, data: dict, user_id):
