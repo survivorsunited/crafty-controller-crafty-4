@@ -44,6 +44,7 @@ with redirect_stderr(NullWriter()):
 
 logger = logging.getLogger(__name__)
 SUCCESSMSG = "SUCCESS! Forge install completed"
+SERVER_DETAIL_URL = "/panel/server_detail"
 
 
 def callback(called_func):
@@ -132,8 +133,8 @@ class ServerOutBuf:
                 break
 
     def new_line_handler(self, new_line):
-        new_line = re.sub("(\033\\[(0;)?[0-9]*[A-z]?(;[0-9])?m?)", " ", new_line)
-        new_line = re.sub("[A-z]{2}\b\b", "", new_line)
+        new_line = re.sub(r"\033\[(?:\d{1,2}(?:;\d{1,2})*)?[mK]", " ", new_line)
+        new_line = re.sub(r"[A-z]{2}\b\b", "", new_line)
         highlighted = self.helper.log_colors(html.escape(new_line))
 
         logger.debug("Broadcasting new virtual terminal line")
@@ -142,7 +143,7 @@ class ServerOutBuf:
         # this server's console
         if len(WebSocketManager().clients) > 0:
             WebSocketManager().broadcast_page_params(
-                "/panel/server_detail",
+                SERVER_DETAIL_URL,
                 {"id": self.server_id},
                 "vterm_new_line",
                 {"line": highlighted + "<br />"},
@@ -1225,7 +1226,7 @@ class ServerInstance:
             }
             if len(WebSocketManager().clients) > 0:
                 WebSocketManager().broadcast_page_params(
-                    "/panel/server_detail",
+                    SERVER_DETAIL_URL,
                     {"id": str(self.server_id)},
                     "backup_status",
                     results,
@@ -1271,7 +1272,7 @@ class ServerInstance:
             }
             if len(WebSocketManager().clients) > 0:
                 WebSocketManager().broadcast_page_params(
-                    "/panel/server_detail",
+                    SERVER_DETAIL_URL,
                     {"id": str(self.server_id)},
                     "backup_status",
                     results,
@@ -1411,7 +1412,7 @@ class ServerInstance:
             )
         for user in server_users:
             WebSocketManager().broadcast_user_page(
-                "/panel/server_detail",
+                SERVER_DETAIL_URL,
                 user,
                 "update_button_status",
                 {
@@ -1510,7 +1511,7 @@ class ServerInstance:
                 time.sleep(3)
             for user in server_users:
                 WebSocketManager().broadcast_user_page(
-                    "/panel/server_detail",
+                    SERVER_DETAIL_URL,
                     user,
                     "update_button_status",
                     {
@@ -1606,7 +1607,7 @@ class ServerInstance:
             )
 
             WebSocketManager().broadcast_page_params(
-                "/panel/server_detail",
+                SERVER_DETAIL_URL,
                 {"id": str(self.server_id)},
                 "update_server_details",
                 {
