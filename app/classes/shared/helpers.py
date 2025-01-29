@@ -270,8 +270,7 @@ class Helpers:
     def check_file_perms(path):
         try:
             with open(path, "r", encoding="utf-8"):
-                pass
-            logger.info(f"{path} is readable")
+                logger.info(f"{path} is readable")
             return True
         except PermissionError:
             return False
@@ -347,22 +346,6 @@ class Helpers:
             )  # Check if the status code starts with 2
         except requests.RequestException:
             return False
-
-    @staticmethod
-    def check_port(server_port):
-        try:
-            ip = get("https://api.ipify.org", timeout=1).content.decode("utf8")
-        except:
-            ip = "google.com"
-        a_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        a_socket.settimeout(20.0)
-
-        location = (ip, server_port)
-        result_of_check = a_socket.connect_ex(location)
-
-        a_socket.close()
-
-        return result_of_check == 0
 
     @staticmethod
     def check_server_conn(server_port):
@@ -803,10 +786,9 @@ class Helpers:
         filename = os.path.join(path, "tempfile.txt")
         try:
             with open(filename, "w", encoding="utf-8"):
-                pass
+                logger.info(f"{filename} is writable")
             os.remove(filename)
 
-            logger.info(f"{filename} is writable")
             return True
 
         except Exception as e:
@@ -842,7 +824,7 @@ class Helpers:
         # ensure the log file is there
         try:
             with open(log_file, "a", encoding="utf-8"):
-                pass
+                Console.debug(f"Opened logfile, {log_file} successfully!")
         except Exception as e:
             Console.critical(f"Unable to open log file! {e}")
             sys.exit(1)
