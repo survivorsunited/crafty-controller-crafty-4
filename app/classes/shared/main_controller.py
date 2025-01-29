@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 STRING_TIME_FORMAT = "%d/%m/%Y %H:%M:%S"
 NOT_IMPLEMENTED_ERROR = "Not yet implemented"
+COMMAND_LOG_PREFIX = "command: %s"
 
 
 class Controller:
@@ -494,7 +495,7 @@ class Controller:
                     )
                 else:
                     server_command = f"./{create_data['executable']}"
-                logger.debug("command: " + server_command)
+                logger.debug(COMMAND_LOG_PREFIX, server_command)
                 server_file = create_data["executable"]
             elif root_create_data["create_type"] == "import_zip":
                 # TODO: Copy files from the zip file to the new server directory
@@ -714,7 +715,7 @@ class Controller:
                 f"-Xmx{Helpers.float_to_string(max_mem)}M "
                 f"-jar {full_jar_path} nogui"
             )
-        logger.debug("command: " + server_command)
+        logger.debug(COMMAND_LOG_PREFIX, server_command)
         server_log_file = "./logs/latest.log"
         server_stop = "stop"
 
@@ -767,7 +768,7 @@ class Controller:
             server_command = f'"{full_jar_path}"'
         else:
             server_command = f"./{server_exe}"
-        logger.debug("command: " + server_command)
+        logger.debug(COMMAND_LOG_PREFIX, server_command)
         server_log_file = ""
         server_stop = "stop"
 
@@ -811,7 +812,7 @@ class Controller:
             server_command = f'"{full_jar_path}"'
         else:
             server_command = f"./{server_exe}"
-        logger.debug("command: " + server_command)
+        logger.debug(COMMAND_LOG_PREFIX, server_command)
         server_log_file = ""
         server_stop = "stop"
 
@@ -858,7 +859,7 @@ class Controller:
             server_command = f'"{full_jar_path}"'
         else:
             server_command = f"./{server_exe}"
-        logger.debug("command: " + server_command)
+        logger.debug(COMMAND_LOG_PREFIX, server_command)
         server_log_file = ""
         server_stop = "stop"
 
