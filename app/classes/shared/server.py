@@ -586,7 +586,7 @@ class ServerInstance:
         self.is_crashed = False
         self.stats_helper.server_crash_reset()
 
-        self.start_time = str(datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
+        self.start_time = str(Helpers.get_utc_now().strftime("%Y-%m-%d %H:%M:%S"))
 
         if self.process.poll() is None:
             logger.info(f"Server {self.name} running with PID {self.process.pid}")
@@ -655,17 +655,16 @@ class ServerInstance:
             self.forge_install_watcher()
 
     def check_internet_thread(self, user_id, user_lang):
-        if user_id:
-            if not Helpers.check_internet():
-                WebSocketManager().broadcast_user(
-                    user_id,
-                    "send_start_error",
-                    {
-                        "error": self.helper.translation.translate(
-                            "error", "internet", user_lang
-                        )
-                    },
-                )
+        if user_id and not Helpers.check_internet():
+            WebSocketManager().broadcast_user(
+                user_id,
+                "send_start_error",
+                {
+                    "error": self.helper.translation.translate(
+                        "error", "internet", user_lang
+                    )
+                },
+            )
 
     def forge_install_watcher(self):
         # Enter for install if that parameter is true
