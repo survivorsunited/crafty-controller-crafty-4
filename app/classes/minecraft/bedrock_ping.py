@@ -85,7 +85,6 @@ class BedrockPing:
 
     @staticmethod
     def __get_time():
-        # return time.time_ns() // 1000000
         return time.perf_counter_ns() // 1000000
 
     def __sendping(self):
