@@ -12,7 +12,6 @@ from playhouse.shortcuts import model_to_dict
 from app.classes.shared.main_models import DatabaseShortcuts
 from app.classes.models.base_model import BaseModel
 
-# from app.classes.models.users import Users
 from app.classes.shared.helpers import Helpers
 
 logger = logging.getLogger(__name__)
@@ -40,7 +39,6 @@ class Servers(BaseModel):
     type = CharField(default="minecraft-java")
     show_status = BooleanField(default=1)
     created_by = IntegerField(default=-100)
-    # created_by = ForeignKeyField(Users, backref="creator_server", null=True)
     shutdown_timeout = IntegerField(default=60)
     ignored_exits = CharField(default="0")
     count_players = BooleanField(default=True)
