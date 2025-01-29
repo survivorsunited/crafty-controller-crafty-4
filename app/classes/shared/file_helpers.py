@@ -129,9 +129,12 @@ class FileHelpers:
         try:
             # This removes the top-level folder:
             path.rmdir()
-        except Exception as e:
-            logger.error("Unable to remove top level")
-            return e
+        except FileNotFoundError as why:
+            logger.error("Unable to remove top level file not found")
+            return why
+        except PermissionError as why:
+            logger.error("Unable to remove top level permission denied")
+            return why
         return True
 
     @staticmethod
@@ -400,7 +403,6 @@ class FileHelpers:
                 Console.error(ex)
         else:
             return "false"
-        return
 
     def unzip_server(self, zip_path, user_id):
         if Helpers.check_file_perms(zip_path):
