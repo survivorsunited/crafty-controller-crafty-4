@@ -192,7 +192,7 @@ class ServerInstance:
                 encoding="utf-8",
             ) as f:
                 self.player_cache = list(json.load(f).values())
-        except:
+        except (FileNotFoundError, PermissionError):
             self.player_cache = []
         try:
             self.tz = get_localzone()
