@@ -136,10 +136,17 @@ class Stats:
         if running:
             try:
                 return Stats._get_process_stats(process)
+            except psutil.NoSuchProcess:
+                logger.debug(
+                    "getting process stats for pid %s "
+                    "failed, likely process is no longer running",
+                    process.pid,
+                )
             except Exception as e:
                 logger.debug(
-                    f"getting process stats for pid {process.pid} "
+                    "getting process stats for pid %s "
                     "failed due to the following error:",
+                    process.pid,
                     exc_info=e,
                 )
                 return {"cpu_usage": -1, "memory_usage": -1, "mem_percentage": -1}

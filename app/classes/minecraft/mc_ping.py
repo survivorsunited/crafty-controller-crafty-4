@@ -121,7 +121,7 @@ def get_code_format(format_name):
 
 
 # For the rest of requests see wiki.vg/Protocol
-def ping(ip, port):
+def ping(ip: str, port: int) -> dict:
     def read_var_int():
         i = 0
         j = 0
@@ -145,8 +145,17 @@ def ping(ip, port):
     try:
         sock.connect((ip, port))
 
-    except:
-        return False
+    except ConnectionRefusedError:
+        logger.debug("Connection refused while pinging server at %s:%i", ip, port)
+        return {}
+    except TimeoutError:
+        logger.debug("Timeout while pinging server at %s:%i", ip, port)
+        return {}
+    except (socket.herror, socket.gaierror) as e:
+        logger.error(
+            "Minecraft ping encountered an address resolution issue with %s: %s", ip, e
+        )
+        return {}
 
     try:
         host = ip.encode("utf-8")
@@ -181,7 +190,7 @@ def ping(ip, port):
 
 
 # For the rest of requests see wiki.vg/Protocol
-def ping_bedrock(ip, port):
+def ping_bedrock(ip: str, port: int) -> dict:
     rand = random.Random()
     try:
         # pylint: disable=consider-using-f-string

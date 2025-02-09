@@ -46,7 +46,7 @@ class BedrockPing:
     ]
 
     def __init__(
-        self, bedrock_addr, bedrock_port: int, client_guid: int = 0, timeout: int = 5
+        self, bedrock_addr, bedrock_port: int, client_guid: int = 0, timeout: int = 1
     ):
         self.addr = bedrock_addr
         self.port = bedrock_port
@@ -121,17 +121,10 @@ class BedrockPing:
         now = BedrockPing.__byter(BedrockPing.__get_time(), "ulong")
         guid = self.guid_bytes
         d2s = pack_id + now + BedrockPing.magic + guid
-        # print("S:", d2s)
         self.sock.sendto(d2s, (self.addr, self.port))
 
     def __recvpong(self) -> dict:
-        try:
-            data = self.sock.recv(4096)
-        except TimeoutError:
-            logger.warning(
-                "Got timeout while issuing bedrock ping to %s:%i", self.addr, self.port
-            )
-            return {}
+        data = self.sock.recv(4096)
         if data[0] == 0x1C:
             ret = {}
             sliced = BedrockPing.__slice(
@@ -188,9 +181,24 @@ class BedrockPing:
         while rtr > 0:
             try:
                 self.__sendping()
-                return self.__recvpong()
-            except ValueError as e:
-                print(
-                    f"E: {e}, checking next packet. Retries remaining: {rtr}/{retries}"
+            except (socket.herror, socket.gaierror) as e:
+                logger.error(
+                    "Bedrock ping encountered an address resolution issue with %s: %s",
+                    self.addr,
+                    e,
                 )
+                return {}
+            try:
+                return self.__recvpong()
+            except TimeoutError:
+                logger.warning(
+                    "Got temporary timeout while issuing bedrock ping to %s:%i - retries remaining %i/%i",
+                    self.addr,
+                    self.port,
+                    rtr,
+                    retries,
+                )
+            except ValueError:
+                logger.exception("Encountered unexpected value during bedrock ping")
+                return {}
             rtr -= 1

@@ -1409,18 +1409,18 @@ class ServerInstance:
             message = (
                 '<a data-id="' + str(self.server_id) + '" class=""> UPDATING...</i></a>'
             )
-        for user in server_users:
-            WebSocketManager().broadcast_user_page(
-                "/panel/server_detail",
-                user,
-                "update_button_status",
-                {
-                    "isUpdating": self.check_update(),
-                    "server_id": self.server_id,
-                    "wasRunning": was_started,
-                    "string": message,
-                },
-            )
+            for user in server_users:
+                WebSocketManager().broadcast_user_page(
+                    "/panel/server_detail",
+                    user,
+                    "update_button_status",
+                    {
+                        "isUpdating": self.check_update(),
+                        "server_id": self.server_id,
+                        "wasRunning": was_started,
+                        "string": message,
+                    },
+                )
         current_executable = os.path.join(
             Helpers.get_os_understandable_path(self.settings["path"]),
             self.settings["executable"],
@@ -1678,7 +1678,7 @@ class ServerInstance:
             try:
                 int_mc_ping = ping(internal_ip, int(server_port))
             except:
-                int_mc_ping = False
+                int_mc_ping = {}
 
         int_data = False
         ping_data = {}
