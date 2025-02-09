@@ -2,13 +2,14 @@ from collections import namedtuple
 import logging
 import socket
 import struct
+import typing
 
 logger = logging.getLogger(__name__)
 VarInt = namedtuple("VarInt", ["value", "bytes"])
+FieldMeta = namedtuple("FieldMeta", ["bytes", "signed", "varlen"])
 
 
 class JavaPing:
-    FieldMeta = namedtuple("FieldMeta", ["bytes", "signed", "varlen"])
     field_sizes = {  # (len, signed)
         "byte": FieldMeta(bytes=1, signed=False, varlen=""),
         "ubyte": FieldMeta(bytes=1, signed=True, varlen=""),  # unsigned byte
@@ -45,7 +46,7 @@ class JavaPing:
             if not k & 0x80:
                 return VarInt(value=final_value, bytes=byte_index)
 
-    def ping(self) -> dict:
+    def ping(self) -> typing.Union[dict, None]:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(5)
         try:
