@@ -1,5 +1,3 @@
-import struct
-import socket
 import base64
 import json
 import os
@@ -10,6 +8,7 @@ import random
 import typing
 
 from app.classes.minecraft.bedrock_ping import BedrockPing
+from app.classes.minecraft.java_ping import JavaPing
 from app.classes.shared.console import Console
 
 logger = logging.getLogger(__name__)
@@ -122,72 +121,19 @@ def get_code_format(format_name):
 
 
 # For the rest of requests see wiki.vg/Protocol
-def ping(ip: str, port: int) -> typing.Union[dict, None]:
-    def read_var_int():
-        i = 0
-        j = 0
-        while True:
+def ping_java(ip: str, port: int) -> typing.Union[Server, None]:
+    try:
+        j_ping = JavaPing(ip, port)
+        j_ping_resp = j_ping.ping()
+        if j_ping_resp:
             try:
-                k = sock.recv(1)
-                if not k:
-                    raise ValueError()
-            except:
-                return 0
-            k = k[0]
-            i |= (k & 0x7F) << (j * 7)
-            j += 1
-            if j > 5:
-                raise ValueError("var_int too big")
-            if not k & 0x80:
-                return i
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(5)
-    try:
-        sock.connect((ip, port))
-
-    except ConnectionRefusedError:
-        logger.debug("Connection refused while pinging server at %s:%i", ip, port)
-        return {}
-    except TimeoutError:
-        logger.debug("Timeout while pinging server at %s:%i", ip, port)
-        return None
-    except (socket.herror, socket.gaierror) as e:
-        logger.error(
-            "Minecraft ping encountered an address resolution issue with %s: %s", ip, e
-        )
-        return None
-
-    try:
-        host = ip.encode("utf-8")
-        data = b""  # wiki.vg/Server_List_Ping
-        data += b"\x00"  # packet ID
-        data += b"\x04"  # protocol variant
-        data += struct.pack(">b", len(host)) + host
-        data += struct.pack(">H", port)
-        data += b"\x01"  # next state
-        data = struct.pack(">b", len(data)) + data
-        sock.sendall(data + b"\x01\x00")  # handshake + status ping
-        length = read_var_int()  # full packet length
-        if length < 10:
-            return None
-
-        sock.recv(1)  # packet type, 0 for pings
-        length = read_var_int()  # string length
-        data = b""
-        while len(data) != length:
-            chunk = sock.recv(length - len(data))
-            if not chunk:
+                return Server(json.loads(j_ping_resp))
+            except (KeyError, json.decoder.JSONDecodeError):
                 return None
-
-            data += chunk
-        logger.debug(f"Server reports this data on ping: {data}")
-        try:
-            return Server(json.loads(data))
-        except (KeyError, json.decoder.JSONDecodeError):
+        else:
             return None
-    finally:
-        sock.close()
+    except:
+        logger.exception("Unable to get Java ping stats")
 
 
 # For the rest of requests see wiki.vg/Protocol
@@ -203,4 +149,4 @@ def ping_bedrock(ip: str, port: int) -> dict:
         brp = BedrockPing(ip, port, client_guid)
         return brp.ping()
     except:
-        logger.exception("Unable to get RakNet stats")
+        logger.exception("Unable to get Bedrock ping stats")

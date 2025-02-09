@@ -192,7 +192,8 @@ class BedrockPing:
                 return self.__recvpong()
             except TimeoutError:
                 logger.warning(
-                    "Got temporary timeout while issuing bedrock ping to %s:%i - retries remaining %i/%i",
+                    "Got temporary timeout while issuing bedrock ping to %s:%i "
+                    "- retries remaining %i/%i",
                     self.addr,
                     self.port,
                     rtr,

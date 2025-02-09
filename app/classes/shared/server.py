@@ -25,7 +25,7 @@ from apscheduler.jobstores.base import JobLookupError, ConflictingIdError
 from prometheus_client import CollectorRegistry, Gauge, Info
 
 from app.classes.minecraft.stats import Stats
-from app.classes.minecraft.mc_ping import ping, ping_bedrock
+from app.classes.minecraft.mc_ping import ping_java, ping_bedrock
 from app.classes.models.servers import HelperServers, Servers
 from app.classes.models.server_stats import HelperServerStats
 from app.classes.models.management import HelpersManagement, HelpersWebhooks
@@ -1676,7 +1676,7 @@ class ServerInstance:
             int_mc_ping = ping_bedrock(internal_ip, int(server_port))
         else:
             try:
-                int_mc_ping = ping(internal_ip, int(server_port))
+                int_mc_ping = ping_java(internal_ip, int(server_port))
             except:
                 int_mc_ping = {}
 
@@ -1746,7 +1746,7 @@ class ServerInstance:
 
         logger.debug(f"Pinging {internal_ip} on port {server_port}")
         if HelperServers.get_server_type_by_id(self.server_id) != "minecraft-bedrock":
-            int_mc_ping = ping(internal_ip, int(server_port))
+            int_mc_ping = ping_java(internal_ip, int(server_port))
 
             ping_data = {}
 
@@ -1802,7 +1802,7 @@ class ServerInstance:
         if HelperServers.get_server_type_by_id(server_id) == "minecraft-bedrock":
             int_mc_ping = ping_bedrock(internal_ip, int(server_port))
         else:
-            int_mc_ping = ping(internal_ip, int(server_port))
+            int_mc_ping = ping_java(internal_ip, int(server_port))
 
         int_data = False
         ping_data = {}

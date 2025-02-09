@@ -6,7 +6,7 @@ import datetime
 import base64
 import typing as t
 
-from app.classes.minecraft.mc_ping import ping
+from app.classes.minecraft.mc_ping import ping_java
 from app.classes.models.management import HostStats
 from app.classes.models.servers import HelperServers
 from app.classes.shared.null_writer import NullWriter
@@ -240,7 +240,7 @@ class Stats:
 
         logger.debug(f"Pinging {internal_ip} on port {server_port}")
         if HelperServers.get_server_type_by_id(server_id) != "minecraft-bedrock":
-            int_mc_ping = ping(internal_ip, int(server_port))
+            int_mc_ping = ping_java(internal_ip, int(server_port))
 
             ping_data = {}
 
