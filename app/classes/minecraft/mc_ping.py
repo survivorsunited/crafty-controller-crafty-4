@@ -7,6 +7,7 @@ import re
 import logging.config
 import uuid
 import random
+import typing
 
 from app.classes.minecraft.bedrock_ping import BedrockPing
 from app.classes.shared.console import Console
@@ -121,7 +122,7 @@ def get_code_format(format_name):
 
 
 # For the rest of requests see wiki.vg/Protocol
-def ping(ip: str, port: int) -> dict:
+def ping(ip: str, port: int) -> typing.Union[dict, None]:
     def read_var_int():
         i = 0
         j = 0
@@ -150,12 +151,12 @@ def ping(ip: str, port: int) -> dict:
         return {}
     except TimeoutError:
         logger.debug("Timeout while pinging server at %s:%i", ip, port)
-        return {}
+        return None
     except (socket.herror, socket.gaierror) as e:
         logger.error(
             "Minecraft ping encountered an address resolution issue with %s: %s", ip, e
         )
-        return {}
+        return None
 
     try:
         host = ip.encode("utf-8")
@@ -169,7 +170,7 @@ def ping(ip: str, port: int) -> dict:
         sock.sendall(data + b"\x01\x00")  # handshake + status ping
         length = read_var_int()  # full packet length
         if length < 10:
-            return not length < 0
+            return None
 
         sock.recv(1)  # packet type, 0 for pings
         length = read_var_int()  # string length
@@ -177,14 +178,14 @@ def ping(ip: str, port: int) -> dict:
         while len(data) != length:
             chunk = sock.recv(length - len(data))
             if not chunk:
-                return False
+                return None
 
             data += chunk
         logger.debug(f"Server reports this data on ping: {data}")
         try:
             return Server(json.loads(data))
         except (KeyError, json.decoder.JSONDecodeError):
-            return {}
+            return None
     finally:
         sock.close()
 
