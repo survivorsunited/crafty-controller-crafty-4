@@ -11,23 +11,31 @@ stages:
 variables:
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
+  SECRET_DETECTION_EXCLUDED_PATHS: migrations, vendors
 
 include:
   - local: .gitlab/lint.yml
   - local: .gitlab/docker-build.yml
   - local: .gitlab/windows-build.yml
   - local: .gitlab/release.yml
-  - template: Security/Dependency-Scanning.gitlab-ci.yml
-  - template: Security/SAST.gitlab-ci.yml
-  - template: Security/Secret-Detection.gitlab-ci.yml
-
-sast:
-  variables:
-    SAST_EXCLUDED_PATHS: spec, test, tests, tmp, migrations, vendors
-    SAST_BANDIT_EXCLUDED_PATHS: "'*/migrations/*, */vendors/*'"
-    SAST_EXCLUDED_ANALYZERS: semgrep
-  stage: test
-
-secret_detection:
-  variables:
-    SECRET_DETECTION_EXCLUDED_PATHS: migrations, vendors
+  - component: $CI_SERVER_FQDN/components/secret-detection/secret-detection@main
+    rules:
+      - if: "$CODE_QUALITY_DISABLED"
+        when: never
+      - if: $CI_PIPELINE_SOURCE == "schedule"
+        when: never
+  - component: $CI_SERVER_FQDN/components/sast/sast@main
+    inputs:
+      excluded_paths: spec, test, tests, tmp, migrations, vendors
+      excluded_analyzers: semgrep
+    rules:
+      - if: "$CODE_QUALITY_DISABLED"
+        when: never
+      - if: $CI_PIPELINE_SOURCE == "schedule"
+        when: never
+  - component: $CI_SERVER_FQDN/components/dependency-scanning/main@main
+    rules:
+      - if: "$CODE_QUALITY_DISABLED"
+        when: never
+      - if: $CI_PIPELINE_SOURCE == "schedule"
+        when: never
