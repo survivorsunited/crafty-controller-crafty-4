@@ -527,6 +527,8 @@ class Helpers:
             "dir_size_poll_freq_minutes": 5,
             "crafty_logs_delete_after_days": 0,
             "big_bucket_repo": "https://jars.arcadiatech.org",
+            "enable_otp_skew": False,
+            "max_login_attempts": 3,
         }
 
     def get_all_settings(self):
