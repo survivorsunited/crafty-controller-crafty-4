@@ -3,10 +3,17 @@
 
 ### Refactor
 - Refactor backups for efficiency and in-place backup restores ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/815))
+- Refactor self-signed cert creation from `OpenSSL.crypto.X509` to `pyca/cryptography`'s X.509 APIs ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/833))
 ### New features
-TBD
+- Add TOTP to allow for added authentication security ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/818) | [!838](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/838))
 ### Bug fixes
-TBD
+- Bump cryptography for CVE-2024-12797 ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/833))
+- Fix problematic MOTDs on bedrock servers breaking stats collection ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/831))
+- Fix caching issue on upload imports ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/836))
+- Fix server-name not showing after CSS refactor ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/832))
+- Fix overall player count on dashboard after CSS refactor ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/829))
+- Fix ignored names being ignored on all unzips and not just server updates ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/830))
+- Fix unzipping archive with db_stats would cause system crash ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/839))
 ### Tweaks
 TBD
 ### Lang

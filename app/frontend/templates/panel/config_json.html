@@ -57,7 +57,7 @@
               <div class="form-group">
                 {% end %}
                 <label class="form" for="{{item[0]}}">
-                  {{item[0]}}
+                  {{translate("configJson", item[0], data["lang"], False)}}
                 </label>
                 {% if item[0] == 'language' %}
                 <select name="{{item[0]}}" class="form-control">
@@ -107,22 +107,22 @@
                 <div class="custom-control custom-radio">
                   <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_True" value="True" checked>
                   <label class="custom-control-label" for="{{item[0]}}_True">
-                    True
+                    {{translate("configJson", "True", data["lang"])}}
                   </label>
                 </div>
                 <div class="custom-control custom-radio">
                   <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_False" value="False">
-                  <label class="custom-control-label" for="{{item[0]}}_False">False</label>
+                  <label class="custom-control-label" for="{{item[0]}}_False">{{translate("configJson", "False", data["lang"])}}</label>
                 </div>
                 {% else %}
                 <div class="custom-control custom-radio">
                   <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_True" value="True">
-                  <label class="custom-control-label" for="{{item[0]}}_True">True</label>
+                  <label class="custom-control-label" for="{{item[0]}}_True">{{translate("configJson", "True", data["lang"])}}</label>
                 </div>
                 <div class="custom-control custom-radio">
                   <input class="custom-control-input" type="radio" name="{{item[0]}}" id="{{item[0]}}_False" value="False" checked>
                   <label class="custom-control-label" for="{{item[0]}}_False">
-                    False
+                    {{translate("configJson", "False", data["lang"])}}
                   </label>
                 </div>
                 {% end %}
@@ -134,7 +134,7 @@
                 {% end %}
               </div>
               {% end %}
-              <button class="btn btn-success" type="submit">Submit</button>&nbsp;<span id="submit-status"></span>
+              <button class="btn btn-success" type="submit">{{translate("configJson", "submit", data["lang"])}}</button>&nbsp;<span id="submit-status"></span>
           </form>
         </div>
       </div>

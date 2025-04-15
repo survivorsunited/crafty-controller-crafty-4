@@ -13,12 +13,6 @@
     </div>
   </li>
 
-  <li class="nav-item dropdown">
-    <a class="nav-link" href="/panel/panel_config">
-      <i class="fas fa-cogs"></i>
-    </a>
-  </li>
-
   <li class="nav-item dropdown user-dropdown">
     <a class="nav-link dropdown-toggle" id="UserDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
       <img class="img-xs rounded-circle profile-picture" onerror="pfpError(this)" src="{{ data['user_data']['pfp'] }}"
@@ -37,6 +31,10 @@
         {% end %}
         <p class="font-weight-light text-muted mb-0">Email: {{ data['user_data']['email'] }}</p>
       </div>
+      <a class="dropdown-item" href="/panel/edit_user?id={{data['user_data']['user_id']}}"><i
+          class="fa-solid fa-user-gear dropdown-item-icon text-primary"></i>{{
+        translate('notify', 'accountSettings',
+        data['lang']) }}</a>
       {% if data['user_data']['preparing'] %}
       <span class="dropdown-item" id="support_progress"><i
           class="dropdown-item-icon mdi mdi-download-outline text-primary"></i>{{ translate('notify', 'supportLogs',

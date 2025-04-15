@@ -114,6 +114,12 @@ config_json_schema = {
             "error": "typeString",
             "fill": True,
         },
+        "enable_otp_skew": {
+            "type": "boolean",
+            "error": "typeBool",
+            "fill": True,
+        },
+        "max_login_attempts": {"type": "integer", "error": "typeInt", "fill": True},
     },
     "additionalProperties": False,
     "minProperties": 1,

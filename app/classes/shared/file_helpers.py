@@ -368,7 +368,11 @@ class FileHelpers:
 
     @staticmethod
     def unzip_file(zip_path, server_update=False):
-        ignored_names = ["server.properties", "permissions.json", "allowlist.json"]
+        ignored_names = [
+            "server.properties",
+            "permissions.json",
+            "allowlist.json",
+        ]
         # Get directory without zipfile name
         new_dir = pathlib.Path(zip_path).parents[0]
         # make sure we're able to access the zip file
@@ -385,7 +389,7 @@ class FileHelpers:
                 # out of the temp directory and into it's final home.
                 for item in os.listdir(temp_dir):
                     # if the file is one of our ignored names we'll skip it
-                    if item in ignored_names and server_update:
+                    if (item in ignored_names and server_update) or item == "db_stats":
                         continue
                     # we handle files and dirs differently or we'll crash out.
                     if os.path.isdir(os.path.join(temp_dir, item)):
