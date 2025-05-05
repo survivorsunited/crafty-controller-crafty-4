@@ -184,7 +184,7 @@ class ServerInstance:
         self.stats_helper = HelperServerStats(self.server_id)
         self.last_backup_failed = False
         self.server_registry = CollectorRegistry()
-        self.backup_manager = BackupManager(self)
+        self.backup_manager = BackupManager(self, file_helper)
 
         try:
             with open(
@@ -1188,7 +1188,7 @@ class ServerInstance:
         self.helper.ensure_dir_exists(backup_location)
 
         if conf["snapshot"]:
-            self.backup_manager.backup(conf)
+            self.backup_manager.snapshot(conf)
         else:
 
             try:
@@ -1327,7 +1327,6 @@ class ServerInstance:
                     Helpers.get_os_understandable_path(backup_location)
                 )
             )
-            print(files)
             return [
                 {
                     "path": os.path.relpath(

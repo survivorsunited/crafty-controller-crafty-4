@@ -1,3 +1,4 @@
+import os
 import base64
 import hashlib
 import pathlib
@@ -6,6 +7,7 @@ import zlib
 import datetime
 
 from app.classes.shared.crypto_helper import CryptoHelper
+from app.classes.shared.file_helpers import FileHelpers
 
 # Set byte constants
 BYTE_FALSE = bytes.fromhex("00")
@@ -13,9 +15,10 @@ BYTE_TRUE = bytes.fromhex("01")
 
 
 class BackupManager:
-    def __init__(self, server_instance):
+    def __init__(self, server_instance, file_helper):
         self.server_instance = server_instance
         self.crypto_helper = CryptoHelper()
+        self.file_helper: FileHelpers = file_helper
 
     ####################################################################################
     ##########################   SNAPSHOT METHODS ######################################
@@ -325,7 +328,7 @@ class BackupManager:
         """
         return self.b64_to_bytes(input_b64).decode("utf-8")
 
-    def backup(self, conf: dict) -> None:
+    def snapshot(self, conf: dict) -> None:
         """
         Perform the backup.
         Iterate over files in source dir. Apply save function.
@@ -524,3 +527,22 @@ class BackupManager:
     ####################################################################################
     ##########################   LEGACY BACKUP METHODS #################################
     ####################################################################################
+    def restore_backup(self, archive_source: str, restore_dest: str, in_place=True):
+        """takes backup config and archive source and restores it to desired location in
+        the server location.
+
+        Args:
+            archive_source (str): location of backup archive
+            restore_dest (str): destination for backup archive
+            in_place (str): Whether we should wipe the directory or just
+            replace the files in the backup
+        """
+        if (
+            not in_place
+        ):  # If user does not want to backup in place we will clean the server dir
+            for item in os.listdir(restore_dest):
+                if os.path.isdir(os.path.join(restore_dest, item)):
+                    self.file_helper.del_dirs(os.path.join(restore_dest, item))
+                else:
+                    self.file_helper.del_file(os.path.join(restore_dest, item))
+        self.file_helper.restore_archive(archive_source, restore_dest)
