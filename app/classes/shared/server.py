@@ -1203,28 +1203,7 @@ class ServerInstance:
         else:
 
             try:
-                backup_filename = (
-                    f"{backup_location}/"
-                    f"{datetime.datetime.now().astimezone(self.tz).strftime('%Y-%m-%d_%H-%M-%S')}"  # pylint: disable=line-too-long
-                )
-                logger.info(
-                    f"Creating backup of server '{self.settings['server_name']}'"
-                    f" (ID#{self.server_id}, path={self.server_path}) "
-                    f"at '{backup_filename}'"
-                )
-                excluded_dirs = HelpersManagement.get_excluded_backup_dirs(backup_id)
-                server_dir = Helpers.get_os_understandable_path(self.settings["path"])
-
-                self.file_helper.make_backup(
-                    Helpers.get_os_understandable_path(backup_filename),
-                    server_dir,
-                    excluded_dirs,
-                    self.server_id,
-                    backup_id,
-                    conf["backup_name"],
-                    conf["compress"],
-                )
-
+                self.backup_manager.make_backup(conf, backup_location)
                 while (
                     len(self.list_backups(conf)) > conf["max_backups"]
                     and conf["max_backups"] > 0

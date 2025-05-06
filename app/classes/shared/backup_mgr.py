@@ -5,13 +5,32 @@ import pathlib
 import shutil
 import zlib
 import datetime
+import logging
+
+# TZLocal is set as a hidden import on win pipeline
+from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfoNotFoundError
+from tzlocal import get_localzone
 
 from app.classes.shared.crypto_helper import CryptoHelper
 from app.classes.shared.file_helpers import FileHelpers
+from app.classes.shared.helpers import Helpers
+from app.classes.models.management import HelpersManagement
 
 # Set byte constants
 BYTE_FALSE = bytes.fromhex("00")
 BYTE_TRUE = bytes.fromhex("01")
+
+logger = logging.getLogger(__name__)
+
+try:
+    TZ = get_localzone()
+except ZoneInfoNotFoundError as e:
+    logger.error(
+        "Could not capture time zone from system. Falling back to Europe/London"
+        f" error: {e}"
+    )
+    TZ = ZoneInfo("Europe/London")
 
 
 class BackupManager:
@@ -506,7 +525,10 @@ class BackupManager:
         version = chunk_file.read(1)
         if version != bytes.fromhex("00"):
             raise RuntimeError(
-                f"Chunk is of unexpected version. Unable to read. Version was {self.bytes_to_hex(version)}."
+                (
+                    "Chunk is of unexpected version. "
+                    f"Unable to read. Version was {self.bytes_to_hex(version)}."
+                )
             )
 
         # Read encryption byte and nonce. Code not currently used.
@@ -546,3 +568,26 @@ class BackupManager:
                 else:
                     self.file_helper.del_file(os.path.join(restore_dest, item))
         self.file_helper.restore_archive(archive_source, restore_dest)
+
+    def make_backup(self, conf, backup_location):
+        backup_filename = (
+            f"{backup_location}/"
+            f"{datetime.datetime.now().astimezone(TZ).strftime('%Y-%m-%d_%H-%M-%S')}"  # pylint: disable=line-too-long
+        )
+        logger.info(
+            f"Creating backup of server {conf['server_id']['server_name']}"
+            f" (ID#{conf['server_id']['server_id']}, path={conf['server_id']['path']}) "
+            f"at '{backup_filename}'"
+        )
+        excluded_dirs = HelpersManagement.get_excluded_backup_dirs(conf["backup_id"])
+        server_dir = Helpers.get_os_understandable_path(conf["server_id"]["path"])
+
+        self.file_helper.make_backup(
+            Helpers.get_os_understandable_path(backup_filename),
+            server_dir,
+            excluded_dirs,
+            conf["server_id"]["server_id"],
+            conf["backup_id"],
+            conf["backup_name"],
+            conf["compress"],
+        )
