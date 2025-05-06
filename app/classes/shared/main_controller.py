@@ -40,8 +40,11 @@ from app.classes.shared.websocket_manager import WebSocketManager
 
 logger = logging.getLogger(__name__)
 
+MODDED_TYPES = ["forge-installer", "neoforge-installer"]
+
 
 class Controller:
+
     def __init__(self, database, helper, file_helper, import_helper):
         self.helper: Helpers = helper
         self.file_helper: FileHelpers = file_helper
@@ -455,7 +458,7 @@ class Controller:
             if root_create_data["create_type"] == "download_jar":
                 if Helpers.is_os_windows():
                     # Let's check for and setup for install server commands
-                    if create_data["type"] == "forge-installer":
+                    if create_data["type"] in MODDED_TYPES:
                         server_command = (
                             f"java -Xms{Helpers.float_to_string(min_mem)}M "
                             f"-Xmx{Helpers.float_to_string(max_mem)}M "
@@ -468,7 +471,7 @@ class Controller:
                             f'-jar "{server_file}" nogui'
                         )
                 else:
-                    if create_data["type"] == "forge-installer":
+                    if create_data["type"] in MODDED_TYPES:
                         server_command = (
                             f"java -Xms{Helpers.float_to_string(min_mem)}M "
                             f"-Xmx{Helpers.float_to_string(max_mem)}M "

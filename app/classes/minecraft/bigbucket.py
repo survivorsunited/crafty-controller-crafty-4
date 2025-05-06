@@ -216,7 +216,7 @@ class BigBucket:
 
         # Post-download actions
         if success:
-            if server == "forge-installer":
+            if server == "forge-installer" or server == "neoforge-installer":
                 # If this is the newer Forge version, run the installer
                 ServersController.finish_import(server_id, True)
             else:
