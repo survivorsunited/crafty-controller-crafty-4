@@ -689,11 +689,16 @@ class ServerInstance:
                 try:
                     # Getting the forge version from the executable command
                     version = re.findall(
-                        r"forge-installer-([0-9\.]+)((?:)|"
+                        r"(?:forge|neoforge)-installer-([0-9\.]+)((?:)|"
                         r"(?:-([0-9\.]+)-[a-zA-Z]+)).jar",
                         server_obj.execution_command,
                     )
-                    version_param = version[0][0].split(".")
+                    version_info = re.findall(
+                        r"(forge|neoforge)-installer-([0-9\.]+)((?:)|"
+                        r"(?:-([0-9\.]+)-[a-zA-Z]+)).jar",
+                        server_obj.execution_command,
+                    )
+                    version_param = version_info[0][1].split(".")
                     version_major = int(version_param[0])
                     version_minor = int(version_param[1])
                     if len(version_param) > 2:
@@ -707,7 +712,8 @@ class ServerInstance:
 
                         # Retrieving the executable jar filename
                         file_path = glob.glob(
-                            f"{server_obj.path}/forge-{version[0][0]}*.jar"
+                            f"{server_obj.path}/"
+                            f"{version_info[0][0]}-{version[0][1]}*.jar"
                         )[0]
                         file_name = re.findall(
                             r"(forge[-0-9.]+.jar)",
@@ -733,7 +739,9 @@ class ServerInstance:
                         server_obj.execution_command = execution_command
                         Console.debug(SUCCESSMSG)
 
-                    elif version_major <= 1 and version_minor <= 20 and version_sub < 3:
+                    elif (
+                        version_major <= 1 and version_minor <= 20 and version_sub < 3
+                    ) or version_info[0][0] == "neoforge":
                         # NEW VERSION >= 1.17 and <= 1.20.2
                         # (no jar file in server dir, only run.bat and run.sh)
 
@@ -768,7 +776,7 @@ class ServerInstance:
 
                         # Let's set the proper server executable
                         server_obj.executable = os.path.join(
-                            f"{executable_path}forge-{version}-server.jar"
+                            f"{executable_path}{version_info[0][0]}-{version}-server.jar"
                         )
                         # Now lets set up the new run command.
                         # This is based off the run.sh/bat that
@@ -927,7 +935,9 @@ class ServerInstance:
 
         try:
             # remove the stats polling job since server is stopped
+            logger.info("Cleaning up stats schedules for server %s", self.server_id)
             self.server_scheduler.remove_job("stats_" + str(self.server_id))
+            self.server_scheduler.remove_job("save_stats_" + str(self.server_id))
         except JobLookupError as e:
             logger.error(
                 f"Could not remove job with id stats_{self.server_id} due"
@@ -992,6 +1002,7 @@ class ServerInstance:
         self.server_scheduler.remove_job(f"c_{self.server_id}")
         # remove the stats polling job since server is stopped
         self.server_scheduler.remove_job("stats_" + str(self.server_id))
+        self.server_scheduler.remove_job("save_stats_" + str(self.server_id))
 
         # the server crashed, or isn't found - so let's reset things.
         logger.warning(
@@ -1689,12 +1700,9 @@ class ServerInstance:
     def get_servers_stats(self):
         server_stats = {}
 
-        logger.info("Getting Stats for Server " + self.name + " ...")
-
         server_id = self.server_id
+        logger.debug("Getting Stats for Server %s | %s...", self.name, server_id)
         server = HelperServers.get_server_data_by_id(server_id)
-
-        logger.debug(f"Getting stats for server: {server_id}")
 
         # get our server object, settings and data dictionaries
         self.reload_server_settings()
