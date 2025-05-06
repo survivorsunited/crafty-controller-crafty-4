@@ -31,6 +31,7 @@ from app.classes.models.server_stats import HelperServerStats
 from app.classes.models.management import HelpersManagement, HelpersWebhooks
 from app.classes.models.users import HelperUsers
 from app.classes.models.server_permissions import PermissionsServers
+from app.classes.shared.backup_mgr import BackupManager
 from app.classes.shared.console import Console
 from app.classes.shared.helpers import Helpers
 from app.classes.shared.file_helpers import FileHelpers
@@ -183,6 +184,7 @@ class ServerInstance:
         self.stats_helper = HelperServerStats(self.server_id)
         self.last_backup_failed = False
         self.server_registry = CollectorRegistry()
+        self.backup_manager = BackupManager(self, file_helper)
 
         try:
             with open(
@@ -1196,108 +1198,91 @@ class ServerInstance:
 
         self.helper.ensure_dir_exists(backup_location)
 
-        try:
-            backup_filename = (
-                f"{backup_location}/"
-                f"{datetime.datetime.now().astimezone(self.tz).strftime('%Y-%m-%d_%H-%M-%S')}"  # pylint: disable=line-too-long
-            )
-            logger.info(
-                f"Creating backup of server '{self.settings['server_name']}'"
-                f" (ID#{self.server_id}, path={self.server_path}) "
-                f"at '{backup_filename}'"
-            )
-            excluded_dirs = HelpersManagement.get_excluded_backup_dirs(backup_id)
-            server_dir = Helpers.get_os_understandable_path(self.settings["path"])
+        if conf["snapshot"]:
+            self.backup_manager.snapshot(conf)
+        else:
 
-            self.file_helper.make_backup(
-                Helpers.get_os_understandable_path(backup_filename),
-                server_dir,
-                excluded_dirs,
-                self.server_id,
-                backup_id,
-                conf["backup_name"],
-                conf["compress"],
-            )
+            try:
+                self.backup_manager.make_backup(conf, backup_location)
+                while (
+                    len(self.list_backups(conf)) > conf["max_backups"]
+                    and conf["max_backups"] > 0
+                ):
+                    backup_list = self.list_backups(conf)
+                    oldfile = backup_list[0]
+                    oldfile_path = f"{backup_location}/{oldfile['path']}"
+                    logger.info(f"Removing old backup '{oldfile['path']}'")
+                    os.remove(Helpers.get_os_understandable_path(oldfile_path))
 
-            while (
-                len(self.list_backups(conf)) > conf["max_backups"]
-                and conf["max_backups"] > 0
-            ):
-                backup_list = self.list_backups(conf)
-                oldfile = backup_list[0]
-                oldfile_path = f"{backup_location}/{oldfile['path']}"
-                logger.info(f"Removing old backup '{oldfile['path']}'")
-                os.remove(Helpers.get_os_understandable_path(oldfile_path))
-
-            logger.info(f"Backup of server: {self.name} completed")
-            results = {
-                "percent": 100,
-                "total_files": 0,
-                "current_file": 0,
-                "backup_id": backup_id,
-            }
-            if len(WebSocketManager().clients) > 0:
-                WebSocketManager().broadcast_page_params(
-                    "/panel/server_detail",
-                    {"id": str(self.server_id)},
-                    "backup_status",
-                    results,
-                )
-            server_users = PermissionsServers.get_server_user_list(self.server_id)
-            for user in server_users:
-                WebSocketManager().broadcast_user(
-                    user,
-                    "notification",
-                    self.helper.translation.translate(
-                        "notify",
-                        "backupComplete",
-                        HelperUsers.get_user_lang_by_id(user),
-                    ).format(self.name),
-                )
-            if was_server_running:
-                logger.info(
-                    "Backup complete. User had shutdown preference. Starting server."
-                )
-                self.run_threaded_server(HelperUsers.get_user_id_by_name("system"))
-            time.sleep(3)
-            if conf["after"]:
-                if self.check_running():
-                    logger.debug(
-                        "Found running server and send command option. Sending command"
+                logger.info(f"Backup of server: {self.name} completed")
+                results = {
+                    "percent": 100,
+                    "total_files": 0,
+                    "current_file": 0,
+                    "backup_id": backup_id,
+                }
+                if len(WebSocketManager().clients) > 0:
+                    WebSocketManager().broadcast_page_params(
+                        "/panel/server_detail",
+                        {"id": str(self.server_id)},
+                        "backup_status",
+                        results,
                     )
-                    self.send_command(conf["after"])
-            # pause to let people read message.
-            HelpersManagement.update_backup_config(
-                backup_id,
-                {"status": json.dumps({"status": "Standby", "message": ""})},
-            )
-            time.sleep(5)
-        except Exception as e:
-            logger.exception(
-                f"Failed to create backup of server {self.name} (ID {self.server_id})"
-            )
-            results = {
-                "percent": 100,
-                "total_files": 0,
-                "current_file": 0,
-                "backup_id": backup_id,
-            }
-            if len(WebSocketManager().clients) > 0:
-                WebSocketManager().broadcast_page_params(
-                    "/panel/server_detail",
-                    {"id": str(self.server_id)},
-                    "backup_status",
-                    results,
+                server_users = PermissionsServers.get_server_user_list(self.server_id)
+                for user in server_users:
+                    WebSocketManager().broadcast_user(
+                        user,
+                        "notification",
+                        self.helper.translation.translate(
+                            "notify",
+                            "backupComplete",
+                            HelperUsers.get_user_lang_by_id(user),
+                        ).format(self.name),
+                    )
+                if was_server_running:
+                    logger.info(
+                        "Backup complete. User had shutdown preference. Starting server."
+                    )
+                    self.run_threaded_server(HelperUsers.get_user_id_by_name("system"))
+                time.sleep(3)
+                if conf["after"]:
+                    if self.check_running():
+                        logger.debug(
+                            "Found running server and send command option. Sending command"
+                        )
+                        self.send_command(conf["after"])
+                # pause to let people read message.
+                HelpersManagement.update_backup_config(
+                    backup_id,
+                    {"status": json.dumps({"status": "Standby", "message": ""})},
                 )
-            if was_server_running:
-                logger.info(
-                    "Backup complete. User had shutdown preference. Starting server."
+                time.sleep(5)
+            except Exception as e:
+                logger.exception(
+                    f"Failed to create backup of server {self.name} (ID {self.server_id})"
                 )
-                self.run_threaded_server(HelperUsers.get_user_id_by_name("system"))
-            HelpersManagement.update_backup_config(
-                backup_id,
-                {"status": json.dumps({"status": "Failed", "message": f"{e}"})},
-            )
+                results = {
+                    "percent": 100,
+                    "total_files": 0,
+                    "current_file": 0,
+                    "backup_id": backup_id,
+                }
+                if len(WebSocketManager().clients) > 0:
+                    WebSocketManager().broadcast_page_params(
+                        "/panel/server_detail",
+                        {"id": str(self.server_id)},
+                        "backup_status",
+                        results,
+                    )
+                if was_server_running:
+                    logger.info(
+                        "Backup complete. User had shutdown preference. Starting server."
+                    )
+                    self.run_threaded_server(HelperUsers.get_user_id_by_name("system"))
+                HelpersManagement.update_backup_config(
+                    backup_id,
+                    {"status": json.dumps({"status": "Failed", "message": f"{e}"})},
+                )
         self.set_backup_status()
 
     def last_backup_status(self):
@@ -1317,6 +1302,32 @@ class ServerInstance:
                 f"Error putting backup file list for server with ID: {self.server_id}"
             )
             return []
+        if backup_config["snapshot"]:
+            backup_location = os.path.join(
+                backup_config["backup_location"],
+                "snapshots",
+                "manifests",
+            )
+            if not Helpers.check_path_exists(
+                Helpers.get_os_understandable_path(backup_location)
+            ):
+                return []
+            files = Helpers.get_human_readable_files_sizes(
+                Helpers.list_dir_by_date(
+                    Helpers.get_os_understandable_path(backup_location)
+                )
+            )
+            return [
+                {
+                    "path": os.path.relpath(
+                        f["path"],
+                        start=Helpers.get_os_understandable_path(backup_location),
+                    ),
+                    "size": f["size"],
+                }
+                for f in files
+                if f["path"].endswith(".manifest")
+            ]
         backup_location = os.path.join(
             backup_config["backup_location"], backup_config["backup_id"]
         )

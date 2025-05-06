@@ -1338,6 +1338,7 @@ class PanelHandler(BaseHandler):
             server_id = self.get_argument("id", None)
             backup_id = self.get_argument("backup_id", None)
             page_data["active_link"] = "backups"
+            page_data["new_backup"] = True
             page_data["permissions"] = {
                 "Commands": EnumPermissionsServer.COMMANDS,
                 "Terminal": EnumPermissionsServer.TERMINAL,

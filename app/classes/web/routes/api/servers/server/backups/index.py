@@ -8,7 +8,7 @@ from app.classes.web.base_api_handler import BaseApiHandler
 
 logger = logging.getLogger(__name__)
 
-backup_patch_schema = {
+backup_schema = {
     "type": "object",
     "properties": {
         "backup_name": {"type": "string", "minLength": 3, "error": "backupName"},
@@ -48,12 +48,13 @@ backup_patch_schema = {
             "error": "typeList",
             "fill": True,
         },
+        "snapshot": {"type": "boolean", "error": "typeBool", "fill": True},
     },
     "additionalProperties": False,
     "minProperties": 1,
 }
 
-basic_backup_patch_schema = {
+basic_backup_schema = {
     "type": "object",
     "properties": {
         "backup_name": {"type": "string", "minLength": 3, "error": "backupName"},
@@ -87,6 +88,7 @@ basic_backup_patch_schema = {
             "error": "typeList",
             "fill": True,
         },
+        "snapshot": {"type": "boolean", "error": "typeBool", "fill": True},
     },
     "additionalProperties": False,
     "minProperties": 1,
@@ -135,9 +137,9 @@ class ApiServersServerBackupsIndexHandler(BaseApiHandler):
 
         try:
             if auth_data[4]["superuser"]:
-                validate(data, backup_patch_schema)
+                validate(data, backup_schema)
             else:
-                validate(data, basic_backup_patch_schema)
+                validate(data, basic_backup_schema)
         except ValidationError as why:
             offending_key = ""
             if why.schema.get("fill", None):
