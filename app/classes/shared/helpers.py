@@ -329,15 +329,6 @@ class Helpers:
         return s
 
     @staticmethod
-    def check_file_perms(path):
-        try:
-            with open(path, "r", encoding="utf-8"):
-                logger.info(f"{path} is readable")
-            return True
-        except PermissionError:
-            return False
-
-    @staticmethod
     def is_file_older_than_x_days(file, days=1):
         if Helpers.check_file_exists(file):
             file_time = os.path.getmtime(file)
