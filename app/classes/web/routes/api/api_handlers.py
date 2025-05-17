@@ -64,12 +64,19 @@ from app.classes.web.routes.api.users.user.index import ApiUsersUserIndexHandler
 from app.classes.web.routes.api.users.user.permissions import (
     ApiUsersUserPermissionsHandler,
 )
+from app.classes.web.routes.api.users.user.otp import (
+    APIUsersTOTPHandler,
+    APIUsersTOTPIndexHandler,
+    APIUsersTOTPRecovery,
+    APIUsersTOTPVerifyIndexHandler,
+)
 from app.classes.web.routes.api.users.user.api import ApiUsersUserKeyHandler
 from app.classes.web.routes.api.users.user.pfp import ApiUsersUserPfpHandler
 from app.classes.web.routes.api.users.user.public import ApiUsersUserPublicHandler
 from app.classes.web.routes.api.crafty.announcements.index import (
     ApiAnnounceIndexHandler,
 )
+from app.classes.web.routes.api.crafty.check import ApiCraftyCheck
 from app.classes.web.routes.api.crafty.config.index import (
     ApiCraftyConfigIndexHandler,
     ApiCraftyCustomizeIndexHandler,
@@ -105,6 +112,11 @@ def api_handlers(handler_args):
         (
             r"/api/v2/crafty/announcements/?",
             ApiAnnounceIndexHandler,
+            handler_args,
+        ),
+        (
+            r"/api/v2/crafty/check/?",
+            ApiCraftyCheck,
             handler_args,
         ),
         (
@@ -166,6 +178,46 @@ def api_handlers(handler_args):
         (
             r"/api/v2/users/(@me)/?",
             ApiUsersUserIndexHandler,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/([0-9]+)/totp/([a-z0-9-]+)/verify/?",
+            APIUsersTOTPVerifyIndexHandler,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/(@me)/totp/([a-z0-9-]+)/verify/?",
+            APIUsersTOTPVerifyIndexHandler,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/(@me)/totp/recovery/renew/?",
+            APIUsersTOTPRecovery,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/([0-9]+)/totp/recovery/renew/?",
+            APIUsersTOTPRecovery,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/([0-9]+)/totp/?",
+            APIUsersTOTPIndexHandler,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/([0-9]+)/totp/?",
+            APIUsersTOTPIndexHandler,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/([0-9]+)/totp/([a-z0-9-]+)/?",
+            APIUsersTOTPHandler,
+            handler_args,
+        ),
+        (
+            r"/api/v2/users/(@me)/totp/([a-z0-9-]+)/?",
+            APIUsersTOTPHandler,
             handler_args,
         ),
         (

@@ -1,17 +1,41 @@
 # Changelog
-## --- [4.4.7] - 2024/01/20
+## --- [4.4.8] - 2025/05/17
+
+### Refactor
+- Refactor backups for efficiency and in-place backup restores ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/815))
+- Refactor self-signed cert creation from `OpenSSL.crypto.X509` to `pyca/cryptography`'s X.509 APIs ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/833))
+- Refactor 'config.json' tab to include settings sections ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/841))
+### New features
+- Add TOTP to allow for added authentication security ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/818) | [!838](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/838) | [!841](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/841))
+### Bug fixes
+- Bump cryptography for CVE-2024-12797 ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/833))
+- Fix problematic MOTDs on bedrock servers breaking stats collection ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/831))
+- Fix caching issue on upload imports ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/836))
+- Fix server-name not showing after CSS refactor ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/832))
+- Fix overall player count on dashboard after CSS refactor ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/829))
+- Fix ignored names being ignored on all unzips and not just server updates ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/830))
+- Fix unzipping archive with db_stats would cause system crash ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/839))
+- Remove stats scheduling when monitored server is offline ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/842))
+- Force user logout when account is disabled ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/847))
+### Tweaks
+- Add neoforge support in server builder ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/843))
+- Add lightweight health check endpoint ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/848))
+<br><br>
+
+
+## --- [4.4.7] - 2025/01/20
 ### Bug fixes
 - Docker Repair | Remove ubuntu user to replace with crafty user ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/826)) Resolves #521
 <br><br>
 
-## --- [4.4.6] - 2024/01/20
+## --- [4.4.6] - 2025/01/20
 ## NOTE Version effected by non-root docker issue if you installed from this version see [RCA document](https://gitlab.com/crafty-controller/crafty-4/-/issues/521#:~:text=Users%20deploying%20after%204.4.4)
 
 ### Bug fixes
 - Fix traceback on stats page for data missing data.get ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/824))
 <br><br>
 
-## --- [4.4.5] - 2024/01/19
+## --- [4.4.5] - 2025/01/19
 ## NOTE Version effected by non-root docker issue if you installed from this version see [RCA document](https://gitlab.com/crafty-controller/crafty-4/-/issues/521#:~:text=Users%20deploying%20after%204.4.4)
 
 ### Refactor
