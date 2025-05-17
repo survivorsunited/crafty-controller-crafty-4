@@ -1247,7 +1247,7 @@ class Helpers:
         random_generator() = G8sjO2
         random_generator(3, abcdef) = adf
         """
-        return "".join(secrets.choice(chars) for x in range(size))
+        return "".join(secrets.choice(chars) for _ in range(size))
 
     @staticmethod
     def is_os_windows():
