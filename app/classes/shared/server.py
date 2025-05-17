@@ -1593,10 +1593,7 @@ class ServerInstance:
         # only get stats if clients are connected.
         # no point in burning cpu
         if len(WebSocketManager().clients) > 0:
-            total_players = 0
-            max_players = 0
             servers_ping = []
-            raw_ping_result = []
             raw_ping_result = self.get_raw_server_stats(self.server_id)
 
             if f"{raw_ping_result.get('icon')}" == "b''":
@@ -1651,10 +1648,6 @@ class ServerInstance:
                     "players_cache": self.player_cache,
                 },
             )
-            total_players += int(raw_ping_result.get("online"))
-            max_players += int(raw_ping_result.get("max"))
-
-            # self.record_server_stats()
 
             if len(servers_ping) > 0:
                 try:
