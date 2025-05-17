@@ -416,11 +416,15 @@ class FileHelpers:
         else:
             return "false"
 
-    def unzip_server(self, zip_path, user_id):
-        if Helpers.check_file_perms(zip_path):
+    @staticmethod
+    def unzip_server(zip_path, user_id):
+        try:
             temp_dir = tempfile.mkdtemp()
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
                 # extracts archive to temp directory
                 zip_ref.extractall(temp_dir)
-            if user_id:
-                return temp_dir
+        except OSError:
+            return None
+        if user_id:
+            return temp_dir
+        return None
