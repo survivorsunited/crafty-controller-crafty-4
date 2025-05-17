@@ -710,7 +710,7 @@ class PanelHandler(BaseHandler):
                         f"/panel/error?error=Type error: Argument must be an int {e}"
                     )
                 page_data["options"] = [1, 2, 3]
-                if not days in page_data["options"]:
+                if days not in page_data["options"]:
                     page_data["options"].insert(0, days)
                 else:
                     page_data["options"].insert(
@@ -749,8 +749,8 @@ class PanelHandler(BaseHandler):
 
             if subpage == "admin_controls":
                 if (
-                    not page_data["permissions"]["Players"]
-                    in page_data["user_permissions"]
+                    page_data["permissions"]["Players"]
+                    not in page_data["user_permissions"]
                 ):
                     if not superuser:
                         self.redirect("/panel/error?error=Unauthorized access")
@@ -1044,7 +1044,7 @@ class PanelHandler(BaseHandler):
             page_data["providers"] = WebhookFactory.get_supported_providers()
             page_data["triggers"] = WebhookFactory.get_monitored_events()
 
-            if not EnumPermissionsServer.CONFIG in page_data["user_permissions"]:
+            if EnumPermissionsServer.CONFIG not in page_data["user_permissions"]:
                 if not superuser:
                     self.redirect("/panel/error?error=Unauthorized access To Webhooks")
                     return
@@ -1095,7 +1095,7 @@ class PanelHandler(BaseHandler):
             page_data["providers"] = WebhookFactory.get_supported_providers()
             page_data["triggers"] = WebhookFactory.get_monitored_events()
 
-            if not EnumPermissionsServer.CONFIG in page_data["user_permissions"]:
+            if EnumPermissionsServer.CONFIG not in page_data["user_permissions"]:
                 if not superuser:
                     self.redirect("/panel/error?error=Unauthorized access To Webhooks")
                     return
@@ -1161,7 +1161,7 @@ class PanelHandler(BaseHandler):
             page_data["schedule"]["interval_type"] = "days"
             page_data["parent"] = None
 
-            if not EnumPermissionsServer.SCHEDULE in page_data["user_permissions"]:
+            if EnumPermissionsServer.SCHEDULE not in page_data["user_permissions"]:
                 if not superuser:
                     self.redirect(SCHEDULE_AUTH_ERROR_URL)
                     return
@@ -1259,7 +1259,7 @@ class PanelHandler(BaseHandler):
                 page_data["parent"] = None
             page_data["schedule"]["difficulty"] = difficulty
 
-            if not EnumPermissionsServer.SCHEDULE in page_data["user_permissions"]:
+            if EnumPermissionsServer.SCHEDULE not in page_data["user_permissions"]:
                 if not superuser:
                     self.redirect(SCHEDULE_AUTH_ERROR_URL)
                     return
