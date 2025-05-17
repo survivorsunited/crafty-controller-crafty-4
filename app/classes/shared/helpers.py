@@ -862,13 +862,21 @@ class Helpers:
         log_file = os.path.join(os.path.curdir, "logs", "commander.log")
         session_log_file = os.path.join(os.path.curdir, "logs", "session.log")
 
+        logger.info("Checking app directory writable")
+
+        writeable = Helpers.check_writeable(self.root_dir)
+
+        # if not writeable, let's bomb out
+        if not writeable:
+            logger.critical(f"Unable to write to {self.root_dir} directory!")
+            sys.exit(1)
+
         # ensure the log directory is there
         try:
             with suppress(FileExistsError):
                 os.makedirs(os.path.join(self.root_dir, "logs"))
         except Exception as e:
             Console.error(f"Failed to make logs directory with error: {e} ")
-            sys.exit(1)
 
         # ensure the log file is there
         try:
