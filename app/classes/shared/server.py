@@ -744,23 +744,29 @@ class ServerInstance:
                         # NEW VERSION >= 1.17 and <= 1.20.2
                         # (no jar file in server dir, only run.bat and run.sh)
 
-                        run_file_path = ""
                         if self.helper.is_os_windows():
                             run_file_path = os.path.join(server_obj.path, "run.bat")
                         else:
                             run_file_path = os.path.join(server_obj.path, "run.sh")
 
-                        if Helpers.check_file_perms(run_file_path) and os.path.isfile(
-                            run_file_path
-                        ):
-                            run_file = open(run_file_path, "r", encoding="utf-8")
-                            run_file_text = run_file.read()
-                        else:
+                        if not os.path.isfile(run_file_path):
                             Console.error(
                                 "ERROR ! Forge install can't read the scripts files."
                                 " Aborting ..."
                             )
                             return
+
+                        try:
+                            run_file = open(run_file_path, "r", encoding="utf-8")
+                            run_file_text = run_file.read()
+                        except OSError:
+                            Console.error(
+                                "ERROR ! Forge install can't read the scripts files."
+                                " Aborting ..."
+                            )
+                            return
+
+                        run_file.close()
 
                         # We get the server command parameters from forge script
                         server_command = re.findall(
