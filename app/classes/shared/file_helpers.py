@@ -379,7 +379,7 @@ class FileHelpers:
         # Get directory without zipfile name
         new_dir = pathlib.Path(zip_path).parents[0]
         # make sure we're able to access the zip file
-        if Helpers.check_file_perms(zip_path) and os.path.isfile(zip_path):
+        if os.path.isfile(zip_path):
             # make sure the directory we're unzipping this to exists
             Helpers.ensure_dir_exists(new_dir)
             # we'll make a temporary directory to unzip this to.
