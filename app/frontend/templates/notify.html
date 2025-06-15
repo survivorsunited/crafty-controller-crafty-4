@@ -106,10 +106,10 @@
     if (data.length > 0) {
       localStorage.setItem("notif-count", data.length);
       $("#notif-count").show()
-      $("#notif-count").html(data.length);
-      $("#announcements").html(text);
+      $("#notif-count").text(data.length).html();
+      $("#announcements").text(text).html();
     } else {
-      $("#announcements").html(`<li><p class='my-3 text-center'><i class="fa fa-bell-slash" aria-hidden="true"></i></p></li>`);
+      $("#announcements").text(`<li><p class='my-3 text-center'><i class="fa fa-bell-slash" aria-hidden="true"></i></p></li>`).html();
       $("#notif-count").hide()
     }
     $(".clear-button").on("click", function (event) {
@@ -121,7 +121,7 @@
       let notif_count = localStorage.getItem("notif-count") - 1;
       if (notif_count > 0) {
         localStorage.setItem("notif-count", notif_count);
-        $("#notif-count").html(notif_count);
+        $("#notif-count").text(notif_count).html();
       } else {
         $("#announcements").html(`<li><p class='my-3 text-center'><i class="fa fa-bell-slash" aria-hidden="true"></i></p></li>`)
         $("#notif-count").html("");

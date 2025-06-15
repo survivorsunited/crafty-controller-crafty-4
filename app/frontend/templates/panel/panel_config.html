@@ -365,7 +365,7 @@
         $("#submit-status").html('<i class="fa fa-check"></i>');
       } else {
         $("#submit-status").html('<i class="fa fa-spinner fa-spin"></i>');
-        $("#submit-list").html(message);
+        $("#submit-list").text(message).html();
         $("#submit-list").addClass("loading");
       }
     });
