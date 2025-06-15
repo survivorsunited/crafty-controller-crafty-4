@@ -5,6 +5,7 @@ TBD
 ### Bug fixes
 - Revert min length of username from `4 > 3` ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/853))
 - Remove unnecessary poll for player information on `server_details` page load ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/856))
+- [`CVE-2025-5990`] Security fix: resolve stored XSS vulnerabilities in 2x input forms ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/860))
 ### Tweaks
 - Add border around QR code to improve scanning ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/853))
 - Add error when user does not provide a valid username ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/853))
