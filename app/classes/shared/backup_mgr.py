@@ -515,10 +515,13 @@ class BackupManager:
 
             # Recover file
             try:
+                # Check for traversal of maliciously created backup manifest file.
+                # Ensure that the file we are writing is in the recovery target path.
+                Helpers.validate_traversal(destination_path, recovered_file_path)
                 self.file_helper.read_file(
                     file_hash, recovered_file_path, backup_repository_path
                 )
-            except RuntimeError as why:
+            except (RuntimeError, ValueError) as why:
                 backup_manifest_file.close()
                 raise RuntimeError(f"Unable to recover file {file_hash}.") from why
 
