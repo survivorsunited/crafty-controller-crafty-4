@@ -54,6 +54,7 @@ class BackupManager:
             svr_obj: The server object.
             in_place: Should the backup restore in place?
         """
+        logger.debug("Starting backup restore validation")
         try:
             backup_location.resolve(strict=True)
         except OSError as why:
@@ -63,19 +64,21 @@ class BackupManager:
             )
             return
 
-        if not Helpers.validate_traversal(
-            backup_config["backup_location"], backup_location
-        ):
+        try:
+            Helpers.validate_traversal(
+                backup_config["backup_location"], backup_location
+            )
+            Helpers.validate_traversal(backup_location, backup_file)
+        except ValueError as why:
             logger.error(
-                f"Detected attempted traversal on backup restore with "
-                f"location: {backup_location}."
+                f"A backup restore path traversal attempt was detected. Error: {why}."
             )
             return
 
-        if not Helpers.validate_traversal(backup_location, backup_file):
-            self.valid_restore_starter(
-                backup_config, backup_location, backup_file, svr_obj, in_place
-            )
+        logger.info("Starting a restore after validation")
+        self.valid_restore_starter(
+            backup_config, backup_location, backup_file, svr_obj, in_place
+        )
 
     def valid_restore_starter(  # pylint: disable=too-many-positional-arguments
         self, backup_config, backup_location: Path, backup_file, svr_obj, in_place
