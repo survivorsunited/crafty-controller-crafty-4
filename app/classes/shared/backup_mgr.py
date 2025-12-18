@@ -63,7 +63,7 @@ class BackupManager:
             )
             return
 
-        if Helpers.validate_traversal(
+        if not Helpers.validate_traversal(
             backup_config["backup_location"], backup_location
         ):
             logger.error(
@@ -72,7 +72,7 @@ class BackupManager:
             )
             return
 
-        if Helpers.validate_traversal(backup_location, backup_file):
+        if not Helpers.validate_traversal(backup_location, backup_file):
             self.valid_restore_starter(
                 backup_config, backup_location, backup_file, svr_obj, in_place
             )
