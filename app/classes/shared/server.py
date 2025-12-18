@@ -12,6 +12,7 @@ import subprocess
 import html
 import glob
 import json
+from pathlib import Path
 
 from zoneinfo import ZoneInfo
 
@@ -394,8 +395,7 @@ class ServerInstance:
                 # Checks for Oracle Java. Only Oracle Java's helper will cause a re-exec
                 if "/Oracle/Java/" in str(self.helper.wtol_path(oracle_path)):
                     logger.info(
-                        "Oracle Java detected. Changing"
-                        " start command to avoid re-exec."
+                        "Oracle Java detected. Changing start command to avoid re-exec."
                     )
                     which_java_raw = self.helper.which_java()
                     try:
@@ -1184,11 +1184,13 @@ class ServerInstance:
     def server_restore_threader(self, backup_id, backup_file, in_place=False):
         # import the server again based on zipfile
         backup_config = HelpersManagement.get_backup_config(backup_id)
-        backup_location = os.path.join(
-            backup_config["backup_location"],
-            backup_config["backup_id"],
-            backup_file,
+
+        # This path gets resolved and checked for traversal in restore_starter so that it remains async.
+        # At this point this path cannot be trusted.
+        backup_location = Path(
+            backup_config["backup_location"], backup_config["backup_id"], backup_file
         )
+
         restore_thread = threading.Thread(
             target=self.backup_mgr.restore_starter,
             daemon=True,
@@ -1484,7 +1486,6 @@ class ServerInstance:
 
         # lets download the files
         if HelperServers.get_server_type_by_id(self.server_id) != "minecraft-bedrock":
-
             jar_dir = os.path.dirname(current_executable)
             jar_file_name = os.path.basename(current_executable)
 
