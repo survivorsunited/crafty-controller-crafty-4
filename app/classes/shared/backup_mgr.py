@@ -437,7 +437,7 @@ class BackupManager:
         return Path(backup_manifest_path).name
 
     def zip_vault_restore(self, server_path, backup_location, in_place) -> bool:
-        """Zip style restore function. Returns a boolean of if an error was encountered or not.
+        """Zip style restore function. Returns a boolean if an error was encountered or not.
 
         Args:
               server_path: Target to restore server to
@@ -447,22 +447,32 @@ class BackupManager:
         Returning: Boolean false if no error was experienced, true if an error was encountered.
         """
         error = False
-        if not in_place:  # If user does not want to backup in place we will
-            # clean the server dir
-            for item in os.listdir(server_path):
-                if (
-                    os.path.isdir(os.path.join(server_path, item))
-                    and item != "db_stats"
-                ):
-                    result = self.file_helper.del_dirs(os.path.join(server_path, item))
-                    if not result:
-                        error = True
-                else:
-                    result = self.file_helper.del_file(os.path.join(server_path, item))
-                    if not result:
-                        error = True
+        if not in_place:  # If user does not want to back up in place we will
+            error = self.clean_server_for_zip_restore(server_path)
+
         self.file_helper.restore_archive(backup_location, server_path)
 
+        return error
+
+    def clean_server_for_zip_restore(self, server_path) -> bool:
+        """Cleans the server directory in preparation for a zip restore.
+
+        Args:
+            server_path: Path to server directory
+
+        Returning: Boolean false if no error was encountered. True if an error was encountered.
+        """
+        error = False
+        # clean the server dir
+        for item in os.listdir(server_path):
+            if os.path.isdir(os.path.join(server_path, item)) and item != "db_stats":
+                result = self.file_helper.del_dirs(os.path.join(server_path, item))
+                if not result:
+                    error = True
+            else:
+                result = self.file_helper.del_file(os.path.join(server_path, item))
+                if not result:
+                    error = True
         return error
 
     def snapshot_restore(
