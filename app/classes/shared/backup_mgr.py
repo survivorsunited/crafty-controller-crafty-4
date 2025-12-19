@@ -101,25 +101,7 @@ class BackupManager:
         if backup_config["backup_type"] != "zip_vault":
             self.snapshot_restore(backup_config, backup_file, svr_obj)
         else:
-            if not in_place:  # If user does not want to backup in place we will
-                # clean the server dir
-                for item in os.listdir(server_path):
-                    if (
-                        os.path.isdir(os.path.join(server_path, item))
-                        and item != "db_stats"
-                    ):
-                        result = self.file_helper.del_dirs(
-                            os.path.join(server_path, item)
-                        )
-                        if not result:
-                            error = True
-                    else:
-                        result = self.file_helper.del_file(
-                            os.path.join(server_path, item)
-                        )
-                        if not result:
-                            error = True
-            self.file_helper.restore_archive(backup_location, server_path)
+            error = self.zip_vault_restore(server_path, backup_location, in_place)
         server_users = PermissionsServers.get_server_user_list(svr_obj.server_id)
         time.sleep(3)
         if error:
@@ -208,14 +190,11 @@ class BackupManager:
         self.helper.ensure_dir_exists(backup_location)
 
         try:
-            backup_filename = (
-                f"{backup_location}/"
-                f"""{
+            backup_filename = f"{backup_location}/" f"""{
                     datetime.datetime.now()
                     .astimezone(self.tz)
                     .strftime("%Y-%m-%d_%H-%M-%S")
                 }"""
-            )
             logger.info(
                 f"Creating backup of server {server.name}"
                 f" (ID#{server.server_id}, path={server.server_path}) "
@@ -453,6 +432,35 @@ class BackupManager:
         )
 
         return Path(backup_manifest_path).name
+
+    def zip_vault_restore(self, server_path, backup_location, in_place) -> bool:
+        """Zip style restore function. Returns a boolean of if an error was encountered or not.
+
+        Args:
+              server_path: Target to restore server to
+              backup_location: Source zip file to restore
+              in_place: Boolean value if servers should be restored in place
+
+        Returning: Boolean false if no error was experienced, true if an error was encountered.
+        """
+        error = False
+        if not in_place:  # If user does not want to backup in place we will
+            # clean the server dir
+            for item in os.listdir(server_path):
+                if (
+                    os.path.isdir(os.path.join(server_path, item))
+                    and item != "db_stats"
+                ):
+                    result = self.file_helper.del_dirs(os.path.join(server_path, item))
+                    if not result:
+                        error = True
+                else:
+                    result = self.file_helper.del_file(os.path.join(server_path, item))
+                    if not result:
+                        error = True
+        self.file_helper.restore_archive(backup_location, server_path)
+
+        return error
 
     def snapshot_restore(
         self, backup_config: {str}, backup_manifest_filename: str, server
