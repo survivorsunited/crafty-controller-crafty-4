@@ -55,14 +55,8 @@ class BackupManager:
             in_place: Should the backup restore in place?
         """
         logger.debug("Starting backup restore validation")
-        try:
-            backup_location.resolve(strict=True)
-        except OSError as why:
-            # Encountered a symlink error or the path does not exist.
-            logger.error(
-                f"A backup was attempted with an invalid backup location. Error {why}"
-            )
-            return
+
+        backup_location = backup_location.resolve()
 
         try:
             Helpers.validate_traversal(
@@ -98,7 +92,9 @@ class BackupManager:
         error = False
         if svr_obj.check_running():
             svr_obj.stop_server()
+
         if backup_config["backup_type"] != "zip_vault":
+            logger.debug("Starting a snapshot backup restore")
             self.snapshot_restore(backup_config, backup_file, svr_obj)
         else:
             error = self.zip_vault_restore(server_path, backup_location, in_place)
