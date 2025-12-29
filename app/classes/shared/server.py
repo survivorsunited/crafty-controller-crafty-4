@@ -38,6 +38,7 @@ from app.classes.shared.null_writer import NullWriter
 from app.classes.shared.websocket_manager import WebSocketManager
 from app.classes.steamcmd.steamcmd import SteamCMD
 from app.classes.web.webhooks.webhook_factory import WebhookFactory
+from app.classes.steamcmd.steamcmd_manager import SteamCmdManager
 
 
 with redirect_stderr(NullWriter()):
@@ -594,38 +595,51 @@ class ServerInstance:
         # ***********************************************
         # ***********************************************
         elif HelperServers.get_server_type_by_id(self.server_id) == "steam_cmd":
-            my_env = os.environ
+            my_env = os.environ.copy()
             env_mod = False
-            with open(
-                self.server_path + "/env.json",
-            ) as env_file:
-                env_file_data = json.load(env_file)
+
+            env_path = os.path.join(self.server_path, "env.json")
+            if os.path.isfile(env_path):
+                with open(env_path, "r", encoding="utf-8") as env_file:
+                    env_file_data = json.load(env_file)
+
                 for key, value in env_file_data.items():
+                    if not isinstance(value,dict):
+                        continue
                     if "path" in key.lower():
                         items_validated = []
-                        for item in value["contents"]:
+                        for item in value.get("contents", []):
                             try:
                                 p = Helpers.validate_traversal(self.server_path, item)
                             except ValueError:
                                 logger.warning(
-                                    "Path traversal detected on server {self.server_id} for env {k} value {i}, skipping"
+                                    f"Path traversal detected on server {self.server_id} for env {key} value {item}, skipping"
                                 )
-                            p = str(p).replace(":", "\:")
-                            items_validated.append(p)
+                                continue
+
+                            # Validate and normalize paths before adding to PATH-like vars
+                            items_validated.append(str(p))
+
                         if my_env.get(key, None):
-                            if value["mode"] == "append":
+                            if value.get("mode") == "append":
                                 items_validated.insert(0, my_env[key])
-                            elif value["mode"] == "prepend":
+                            elif value.get("mode") == "prepend":
                                 items_validated.append(my_env[key])
-                        my_env[key] = ":".join(items_validated)
+
+                        my_env[key] = os.pathsep.join(items_validated)
+
                     else:
-                        items = value["contents"]
-                        if value["mode"] == "append":
-                            items.insert(0, my_env[key])
-                        elif value["mode"] == "prepend":
-                            items.append(my_env[key])
+                        items = list(value.get("contents", []))
+                        if my_env.get(key, None):
+                            if value.get("mode") == "append":
+                                items.insert(0, my_env[key])
+                            elif value.get("mode") == "prepend":
+                                items.append(my_env[key])
+
                         my_env[key] = ",".join(items)
+
                 env_mod = True
+
             if env_mod:
                 logger.debug(
                     f"Launching process for server {self.server_id} with modified environment {my_env}"
@@ -1591,7 +1605,8 @@ class ServerInstance:
         if HelperServers.get_server_type_by_id(self.server_id) == "steam_cmd":
             try:
                 # Set our storage locations
-                steamcmd_path = os.path.join(self.settings["path"], "steamcmd_files")
+                steam = SteamCmdManager(self.helper)
+                steamcmd_path = str(steam.root)
                 gamefiles_path = os.path.join(self.settings["path"], "gameserver_files")
                 app_id = SteamCMD.find_app_id(gamefiles_path)
 

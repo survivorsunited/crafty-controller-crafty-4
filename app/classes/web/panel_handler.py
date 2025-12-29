@@ -837,7 +837,7 @@ class PanelHandler(BaseHandler):
 
                 for file in sorted(
                     os.listdir(
-                        os.path.join(self.helper.root_dir, "app", "translations")
+                        os.path.join(self.helper.code_root, "app", "translations")
                     )
                 ):
                     if file == HUMANIZED_INDEX_FILE:
@@ -936,7 +936,7 @@ class PanelHandler(BaseHandler):
                 "username": "None",
             }
             for file in sorted(
-                os.listdir(os.path.join(self.helper.root_dir, "app", "translations"))
+                os.listdir(os.path.join(self.helper.code_root, "app", "translations"))
             ):
                 if file == HUMANIZED_INDEX_FILE:
                     continue
@@ -1395,7 +1395,7 @@ class PanelHandler(BaseHandler):
                 page_data["super-disabled"] = "disabled"
 
             for file in sorted(
-                os.listdir(os.path.join(self.helper.root_dir, "app", "translations"))
+                os.listdir(os.path.join(self.helper.code_root, "app", "translations"))
             ):
                 if file == HUMANIZED_INDEX_FILE:
                     continue

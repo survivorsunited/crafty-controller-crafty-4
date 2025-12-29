@@ -12,7 +12,7 @@ class Translation:
     def __init__(self, helper):
         self.helper = helper
         self.translations_path = os.path.join(
-            self.helper.root_dir, "app", "translations"
+            self.helper.code_root, "app", "translations"
         )
         self.cached_translation = None
         self.cached_translation_lang = None

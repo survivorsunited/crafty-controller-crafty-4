@@ -6,7 +6,7 @@ import itertools
 import json
 import logging
 import os
-import pathlib
+from pathlib import Path
 import re
 import secrets
 import shlex
@@ -123,22 +123,35 @@ class Helpers:
     allowed_quotes = ['"', "'", "`"]
 
     def __init__(self):
-        self.root_dir = os.path.abspath(os.path.curdir)
+        # Code root (repo): where app/frontend, migrations, etc live
+        self.code_root = str(Path(__file__).resolve().parents[3])
+
+        # Data root: where servers/backups live
+        self.root_dir = str(
+            Path(os.getenv("CRAFTY_DATA_ROOT", self.code_root)).expanduser().resolve()
+        )
+        self.ensure_dir_exists(self.root_dir)
+
         self.read_annc = False
-        self.config_dir = os.path.join(self.root_dir, "app", "config")
-        self.webroot = os.path.join(self.root_dir, "app", "frontend")
-        self.servers_dir = os.path.join(self.root_dir, "servers")
-        self.backup_path = os.path.join(self.root_dir, "backups")
-        self.migration_dir = os.path.join(self.root_dir, "app", "migrations")
+
+        # Code directories (must stay tied to repo)
+        self.config_dir = os.path.join(self.code_root, "app", "config")
+        self.webroot = os.path.join(self.code_root, "app", "frontend")
+        self.migration_dir = os.path.join(self.code_root, "app", "migrations")
         self.dir_migration = False
 
-        self.session_file = os.path.join(self.root_dir, "app", "config", "session.lock")
-        self.settings_file = os.path.join(self.root_dir, "app", "config", "config.json")
+        # Data directories (safe to move via CRAFTY_DATA_ROOT)
+        self.servers_dir = os.path.join(self.root_dir, "servers")
+        self.backup_path = os.path.join(self.root_dir, "backups")
+        self.ensure_dir_exists(self.servers_dir)
+        self.ensure_dir_exists(self.backup_path)
 
-        self.ensure_dir_exists(os.path.join(self.root_dir, "app", "config", "db"))
-        self.db_path = os.path.join(
-            self.root_dir, "app", "config", "db", "crafty.sqlite"
-        )
+        # These are config files in the repo config dir
+        self.session_file = os.path.join(self.config_dir, "session.lock")
+        self.settings_file = os.path.join(self.config_dir, "config.json")
+
+        self.ensure_dir_exists(os.path.join(self.config_dir, "db"))
+        self.db_path = os.path.join(self.config_dir, "db", "crafty.sqlite")
         self.big_bucket_cache = os.path.join(self.config_dir, "bigbucket.json")
         self.steamapps_cache = os.path.join(self.config_dir, "steamapps.json")
         self.credits_cache = os.path.join(self.config_dir, "credits.json")

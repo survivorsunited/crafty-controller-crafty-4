@@ -190,6 +190,10 @@ class ServerHandler(BaseHandler):
                 return
 
             page_data["servers"] = self.controller.steam_apps.fetch_cache()
+            if not page_data["servers"]:
+                page_data["servers"] = [
+                    {"appid": 294420, "name": "7 Days to Die", "windows": True, "linux": True}
+                ]
             if page_data["servers"] is None:
                 page_data["servers"] = []
             page_data["windows"] = Helpers.is_os_windows()
