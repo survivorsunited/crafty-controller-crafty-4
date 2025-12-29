@@ -11,6 +11,7 @@ from app.classes.helpers.file_helpers import FileHelpers
 from app.classes.shared.websocket_manager import WebSocketManager
 from app.classes.steamcmd.serverapps import SteamApps
 from app.classes.steamcmd.steamcmd import SteamCMD
+from app.classes.models.servers import HelperServers
 
 
 logger = logging.getLogger(__name__)
@@ -229,7 +230,6 @@ class ImportHelpers:
         # TODO: what is the server exe called @zedifus
         # @pretzel As we are not able to use steamcmd to launch game it
         # is not possible to be populate as we dont know the executable.
-        server_exe = "game.exe"
 
         # Initiate SteamCMD & game installing status.
         ServersController.set_import(server_id)
@@ -251,13 +251,44 @@ class ImportHelpers:
         # Install the game server files.
         self.steam.app_update(app_id, gamefiles_path)
 
-        # Set the server execuion command. TODO brainstorm how to approach.
-        full_jar_path = os.path.join(steamcmd_path, server_exe)
-        if Helpers.is_os_windows():
-            server_command = f'"{full_jar_path}"'  # TODO why called jar
+        #Set executable + command based on app_id
+        server_obj = HelperServers.get_server_obj(server_id)
+
+        #Default: assume user will configure manually later
+        exe_rel = ""
+        cmd = ""
+
+        if int(app_id) == 294420:
+            # 7 Days to Die Dedicated Server
+            if Helpers.is_os_windows():
+                exe_rel = os.path.join("gameserver_files", "7DaysToDieServer.exe")
+                exe_cmd = exe_rel.replace("/", "\\")
+                cmd = '"gameserver_files\\7DaysToDieServer.exe" -quit -batchmode -nographics -dedicated -configfile=serverconfig.xml'
+            else:
+                exe_rel = os.path.join("gameserver_files", "7DaysToDieServer.x86_64")
+                cmd = "./gameserver_files/7DaysToDieServer.x86_64 -quit -batchmode -nographics -dedicated -configfile=serverconfig.xml"
+
+                # ensure executable bit
+                try:
+                    os.chmod(os.path.join(server_dir, exe_rel), 0o755)
+                except Exception as e:
+                    logger.warning(f"Unable to chmod 7DTD binary: {e}")
+
+        if exe_rel and cmd:
+            server_obj.executable = exe_rel
+            server_obj.execution_command = cmd
+            server_obj.app_id = int(app_id)
+            HelperServers.update_server(server_obj)
         else:
-            server_command = f"./{server_exe}"
-        logger.debug("command: " + server_command)
+            logger.warning(f"No launch mapping for Steam app_id={app_id}; server created but requires manual setup.")
+
+        # Set the server execuion command. TODO brainstorm how to approach.
+        #full_jar_path = os.path.join(steamcmd_path, server_exe)
+        #if Helpers.is_os_windows():
+        #    server_command = f'"{full_jar_path}"'  # TODO why called jar
+        #else:
+        #    server_command = f"./{server_exe}"
+        #logger.debug("command: " + server_command)
 
         # Finalise SteamCMD & game installing status.
         ServersController.finish_import(server_id)

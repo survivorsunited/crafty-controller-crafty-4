@@ -41,7 +41,7 @@
                   <div class="input-group">
                   <select data-container="body" required class="selectpicker form-control form-control-lg select-css"
                     id="steam_server" data-live-search="true" name="app_id">
-                    <option value="None">None</option>
+                    <option value="" selected disabled>Select a server...</option>
                     {% for s in data['servers'] %}
                     {% if data["windows"] and s["windows"] %}
                     <option value="{{ s['appid'] }}">{{ s["name"].capitalize() }}</option>

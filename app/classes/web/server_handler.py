@@ -192,6 +192,7 @@ class ServerHandler(BaseHandler):
             page_data["servers"] = self.controller.steam_apps.fetch_cache()
             if page_data["servers"] is None:
                 page_data["servers"] = []
+            page_data["windows"] = Helpers.is_os_windows()
             template = "server/steam_wizard.html"
 
         self.render(
