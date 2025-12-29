@@ -9,6 +9,11 @@ from app.classes.controllers.servers_controller import ServersController
 from app.classes.helpers.helpers import Helpers
 from app.classes.helpers.file_helpers import FileHelpers
 from app.classes.shared.websocket_manager import WebSocketManager
+from app.classes.steamcmd.serverapps import SteamApps
+from app.classes.steamcmd.steamcmd import SteamCMD
+from app.classes.models.servers import HelperServers
+from app.classes.steamcmd.steamcmd_manager import SteamCmdManager
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +24,7 @@ class ImportHelpers:
     def __init__(self, helper, file_helper):
         self.file_helper: FileHelpers = file_helper
         self.helper: Helpers = helper
+        self.steam_apps: SteamApps = SteamApps(helper)
 
     def import_jar_server(self, server_path, new_server_dir, port, new_id):
         import_thread = threading.Thread(
@@ -211,6 +217,119 @@ class ImportHelpers:
                 os.chmod(full_jar_path, 0o2760)
         # deletes temp dir
         FileHelpers.del_dirs(temp_dir)
+
+    def download_steam_server(self, app_id, server_id, server_dir, server_exe):
+        download_thread = threading.Thread(
+            target=self.create_steam_server,
+            daemon=True,
+            args=(app_id, server_id, server_dir, server_exe),
+            name=f"{server_id}_download",
+        )
+        download_thread.start()
+
+    def create_steam_server(self, app_id, server_id, server_dir, server_exe):
+        """
+        Create a SteamCMD-based server using the shared SteamCMD runtime and a per-server +force_install_dir.
+        """
+        ServersController.set_import(server_id)
+
+        app_id_int = int(app_id)
+        t0 = time.monotonic()
+
+        def _log(msg: str) -> None:
+            logger.info(f"[steam-import:{server_id}] {msg} dt={time.monotonic() - t0:.2f}s")
+
+        _log(f"ENTER create_steam_server app_id={app_id_int} server_dir={server_dir}")
+
+        try:
+            # Per-server install dir for game server files
+            gamefiles_path = os.path.join(server_dir, "gameserver_files")
+            self.helper.ensure_dir_exists(gamefiles_path)
+            _log(f"gamefiles_path={gamefiles_path}")
+
+            # Crafty expects env.json
+            env_path = os.path.join(server_dir, "env.json")
+            if not os.path.isfile(env_path):
+                with open(env_path, "w", encoding="utf-8") as f:
+                    f.write("{}")
+                _log("created env.json")
+            else:
+                _log("env.json exists")
+
+            # Shared SteamCMD runtime (single global install + per-server force_install_dir)
+            steam = SteamCmdManager(self.helper)
+
+            _log("BEFORE ensure_installed()")
+            steam.ensure_installed()
+            _log("AFTER ensure_installed()")
+
+            _log(f"BEFORE app_update() app_id={app_id_int} install_dir={gamefiles_path}")
+            steam.app_update(app_id_int, install_dir=gamefiles_path, validate=True)
+            _log("AFTER app_update()")
+
+            # Set executable + command based on app_id
+            server_obj = HelperServers.get_server_obj(server_id)
+
+            exe_rel = ""
+            cmd = ""
+
+            if app_id_int == 294420:
+                # 7 Days to Die Dedicated Server
+                if Helpers.is_os_windows():
+                    exe_rel = os.path.join("gameserver_files", "7DaysToDieServer.exe")
+                    cmd = (
+                        '"gameserver_files\\7DaysToDieServer.exe" '
+                        "-quit -batchmode -nographics -dedicated -configfile=serverconfig.xml"
+                    )
+                else:
+                    exe_rel = os.path.join("gameserver_files", "7DaysToDieServer.x86_64")
+                    cmd = (
+                        "./gameserver_files/7DaysToDieServer.x86_64 "
+                        "-quit -batchmode -nographics -dedicated -configfile=serverconfig.xml"
+                    )
+
+                    # ensure executable bit
+                    try:
+                        os.chmod(os.path.join(server_dir, exe_rel), 0o755)
+                    except Exception as e:
+                        logger.warning(f"[steam-import:{server_id}] Unable to chmod 7DTD binary: {e}")
+
+            if exe_rel and cmd:
+                # Sanity check: does the target exe actually exist?
+                exe_abs = os.path.join(server_dir, exe_rel)
+                _log(f"mapping exe_rel={exe_rel} exists={os.path.isfile(exe_abs)} exe_abs={exe_abs}")
+
+                server_obj.executable = exe_rel
+                server_obj.execution_command = cmd
+                server_obj.app_id = app_id_int
+                HelperServers.update_server(server_obj)
+
+                # Reload to confirm persistence (helps diagnose “UI shows correct but start uses wrong”)
+                reloaded = HelperServers.get_server_obj(server_id)
+                _log(f"saved executable={reloaded.executable}")
+                _log(f"saved execution_command={reloaded.execution_command}")
+            else:
+                logger.warning(
+                    f"[steam-import:{server_id}] No launch mapping for Steam app_id={app_id_int}; "
+                    "server created but requires manual setup."
+                )
+
+        except Exception as e:
+            # IMPORTANT: don't mark import finished if it failed
+            logger.exception(
+                f"[steam-import:{server_id}] Steam server creation failed for app_id={app_id_int}: {e}"
+            )
+            raise
+
+        else:
+            # Only finalize if everything succeeded
+            ServersController.finish_import(server_id)
+
+            server_users = PermissionsServers.get_server_user_list(server_id)
+            for user in server_users:
+                WebSocketManager().broadcast_user(user, "send_start_reload", {})
+
+            _log("FINISH import + broadcast reload")
 
     def download_bedrock_server(self, path, new_id):
         bedrock_url = Helpers.get_latest_bedrock_url()

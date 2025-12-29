@@ -95,6 +95,8 @@ class ServerHandler(BaseHandler):
             ),  # set value if the token has MFA set to true or not
             # for warning banner
             "update_available": self.helper.update_available,
+            "steamCMD": True,
+            "windows": self.helper.is_os_windows(),
             "support_perm": self.helper.get_setting("general_user_log_access")
             or exec_user["superuser"],
             "version_data": self.helper.get_version_string(),
@@ -176,6 +178,26 @@ class ServerHandler(BaseHandler):
                 return
             page_data["server_api"] = True
             template = "server/bedrock_wizard.html"
+
+        if page == "steam_cmd_step1":
+            if not superuser and not self.controller.crafty_perms.can_create_server(
+                exec_user["user_id"]
+            ):
+                self.redirect(
+                    "/panel/error?error=Unauthorized access: "
+                    "not a server creator or server limit reached"
+                )
+                return
+
+            page_data["servers"] = self.controller.steam_apps.fetch_cache()
+            if not page_data["servers"]:
+                page_data["servers"] = [
+                    {"appid": 294420, "name": "7 Days to Die", "windows": True, "linux": True}
+                ]
+            if page_data["servers"] is None:
+                page_data["servers"] = []
+            page_data["windows"] = Helpers.is_os_windows()
+            template = "server/steam_wizard.html"
 
         self.render(
             template,

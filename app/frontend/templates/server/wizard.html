@@ -18,6 +18,20 @@
       <a class="nav-link" href="/server/bedrock_step1" role="tab" aria-selected="false">
         <i class="fas fa-file-signature"></i>Minecraft-Bedrock</a>
     </li>
+    {% if data["steamCMD"] %}
+    <li class="nav-item term-nav-item">
+      <a class="nav-link" href="/server/steam_cmd_step1" role="tab" aria-selected="false">
+        <i class="fas fa-file-signature"></i><span class="steam">Steam-CMD&nbsp;</span></a>
+    </li>
+    {% else %}
+    <li class="nav-item term-nav-item" id="steam_link">
+      <a style="color: gray;" class="nav-link" href="" role="tab" aria-selected="false">
+        <i class="fas fa-file-signature"></i><span class="steam">Steam-CMD&nbsp;</span> 🔒</a>
+    </li>
+    <span class="missing" title="Missing Deps" ,
+      data-content="SteamCMD dependencies missing. To run SteamCMD servers please install dependencies as noted in our docs."
+      , data-placement="bottom"></span>
+    {% end %}
   </ul>
   <div class="d-none" id="overlay" onclick="hide(event)"></div>
   <div class="row">
@@ -623,6 +637,13 @@
 <script type="text/javascript" src="../../static/assets/js/shared/root-dir.js"></script>
 
 <script>
+  $("#steam_link").mouseenter(function () {
+    $('[data-toggle="popover"]').popover();
+    $('.missing').popover("show");
+  })
+  $("#steam_link").mouseleave(function () {
+    $('.missing').popover("hide");
+  });
   function replacer(key, value) {
     if (key === "roles") {
       return value

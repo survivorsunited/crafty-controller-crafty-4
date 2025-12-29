@@ -25,7 +25,7 @@ from apscheduler.jobstores.base import JobLookupError, ConflictingIdError
 from prometheus_client import CollectorRegistry, Gauge, Info
 
 from app.classes.minecraft.stats import Stats
-from app.classes.minecraft.mc_ping import ping, ping_bedrock
+from app.classes.minecraft.ping import ping, ping_raknet
 from app.classes.models.servers import HelperServers, Servers
 from app.classes.models.server_stats import HelperServerStats
 from app.classes.models.management import HelpersManagement, HelpersWebhooks
@@ -36,7 +36,10 @@ from app.classes.helpers.helpers import Helpers
 from app.classes.helpers.file_helpers import FileHelpers
 from app.classes.shared.null_writer import NullWriter
 from app.classes.shared.websocket_manager import WebSocketManager
+from app.classes.steamcmd.steamcmd import SteamCMD
 from app.classes.web.webhooks.webhook_factory import WebhookFactory
+from app.classes.steamcmd.steamcmd_manager import SteamCmdManager
+
 
 with redirect_stderr(NullWriter()):
     import psutil
@@ -586,8 +589,94 @@ class ServerInstance:
                     # Reset import status if failed while forge installing
                     self.stats_helper.finish_import()
                 return False
+        # ***********************************************
+        # ***********************************************
+        #               STEAM SERVERS
+        # ***********************************************
+        # ***********************************************
+        elif HelperServers.get_server_type_by_id(self.server_id) == "steam_cmd":
+            my_env = os.environ.copy()
+            env_mod = False
+
+            env_path = os.path.join(self.server_path, "env.json")
+            if os.path.isfile(env_path):
+                with open(env_path, "r", encoding="utf-8") as env_file:
+                    env_file_data = json.load(env_file)
+
+                for key, value in env_file_data.items():
+                    if not isinstance(value,dict):
+                        continue
+                    if "path" in key.lower():
+                        items_validated = []
+                        for item in value.get("contents", []):
+                            try:
+                                p = Helpers.validate_traversal(self.server_path, item)
+                            except ValueError:
+                                logger.warning(
+                                    f"Path traversal detected on server {self.server_id} for env {key} value {item}, skipping"
+                                )
+                                continue
+
+                            # Validate and normalize paths before adding to PATH-like vars
+                            items_validated.append(str(p))
+
+                        if my_env.get(key, None):
+                            if value.get("mode") == "append":
+                                items_validated.insert(0, my_env[key])
+                            elif value.get("mode") == "prepend":
+                                items_validated.append(my_env[key])
+
+                        my_env[key] = os.pathsep.join(items_validated)
+
+                    else:
+                        items = list(value.get("contents", []))
+                        if my_env.get(key, None):
+                            if value.get("mode") == "append":
+                                items.insert(0, my_env[key])
+                            elif value.get("mode") == "prepend":
+                                items.append(my_env[key])
+
+                        my_env[key] = ",".join(items)
+
+                env_mod = True
+
+            if env_mod:
+                logger.debug(
+                    f"Launching process for server {self.server_id} with modified environment {my_env}"
+                )
+            else:
+                logger.debug(
+                    f"Launching process for server {self.server_id} with un-modified environment"
+                )
+            try:
+                self.process = subprocess.Popen(
+                    self.server_command,
+                    cwd=self.server_path,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    env=my_env,
+                )
+            except Exception as ex:
+                logger.error(
+                    f"Server {self.name} failed to start with error code: {ex}"
+                )
+                if user_id:
+                    self.helper.websocket_helper.broadcast_user(
+                        user_id,
+                        "send_start_error",
+                        {
+                            "error": self.helper.translation.translate(
+                                "error", "start-error", user_lang
+                            ).format(self.name, ex)
+                        },
+                    )
+                    return
 
         else:
+            logger.debug(
+                f"Starting server {self.server_id} with unknown type {HelperServers.get_server_type_by_id(self.server_id)}"
+            )
             try:
                 self.process = subprocess.Popen(
                     self.server_command,
@@ -1351,7 +1440,7 @@ class ServerInstance:
         return self.last_backup_failed
 
     @callback
-    def jar_update(self):
+    def server_upgrade(self):
         self.stats_helper.set_update(True)
         update_thread = threading.Thread(
             target=self.threaded_jar_update, daemon=True, name=f"exe_update_{self.name}"
@@ -1421,10 +1510,16 @@ class ServerInstance:
             self.stats_helper.set_update(False)
             return
         was_started = "-1"
+
+        ###############################
+        # Backup Server ###############
+        ###############################
+
         # Get default backup configuration
         backup_config = HelpersManagement.get_default_server_backup(self.server_id)
         # start threaded backup
         self.server_backup_threader(backup_config["backup_id"], True)
+
         # checks if server is running. Calls shutdown if it is running.
         if self.check_running():
             was_started = True
@@ -1476,16 +1571,21 @@ class ServerInstance:
             self.stats_helper.set_update(False)
             return
 
-        # lets download the files
-        if HelperServers.get_server_type_by_id(self.server_id) != "minecraft-bedrock":
+        ################################
+        # Executable Download ##########
+        ################################
 
+        # Minecraft Java ###############
+        if HelperServers.get_server_type_by_id(self.server_id) == "minecraft-java":
             jar_dir = os.path.dirname(current_executable)
             jar_file_name = os.path.basename(current_executable)
 
             downloaded = FileHelpers.ssl_get_file(
                 self.settings["executable_update_url"], jar_dir, jar_file_name
             )
-        else:
+
+        # Minecraft Bedrock ############
+        if HelperServers.get_server_type_by_id(self.server_id) == "raknet":
             # downloads zip from remote url
             downloaded = False
             try:
@@ -1500,6 +1600,38 @@ class ServerInstance:
                 logger.critical(
                     f"Failed to download bedrock executable for update \n{e}"
                 )
+
+        # SteamCMD #####################
+        if HelperServers.get_server_type_by_id(self.server_id) == "steam_cmd":
+            try:
+                # Set our storage locations
+                steam = SteamCmdManager(self.helper)
+                steamcmd_path = str(steam.root)
+                gamefiles_path = os.path.join(self.settings["path"], "gameserver_files")
+                app_id = SteamCMD.find_app_id(gamefiles_path)
+
+                # Ensure game and steam directories exist in server directory.
+                self.helper.ensure_dir_exists(steamcmd_path)
+                self.helper.ensure_dir_exists(gamefiles_path)
+
+                # Set the SteamCMD install directory for next install.
+                self.steam = SteamCMD(steamcmd_path)
+
+                # Install the game server files.
+                self.steam.app_update(app_id, gamefiles_path, validate=True)
+                downloaded = True
+            except ValueError as e:
+                logger.critical(
+                    f"Failed to update SteamCMD Server \n App ID find failed: \n{e}"
+                )
+                downloaded = False
+            except Exception as e:
+                logger.critical(f"Failed to update SteamCMD Server \n{e}")
+                downloaded = False
+
+        ################################
+        # Start Upgraded Server ########
+        ################################
 
         if downloaded:
             logger.info("Executable updated successfully. Starting Server")
@@ -1681,8 +1813,11 @@ class ServerInstance:
         server_name = server.get("server_name", f"ID#{server_id}")
 
         logger.debug(f"Pinging server '{server}' on {internal_ip}:{server_port}")
-        if HelperServers.get_server_type_by_id(server_id) == "minecraft-bedrock":
-            int_mc_ping = ping_bedrock(internal_ip, int(server_port))
+        if (
+            HelperServers.get_server_type_by_id(server_id) == "minecraft-bedrock"
+            or HelperServers.get_server_type_by_id(server_id) == "raknet"
+        ):
+            int_mc_ping = ping_raknet(internal_ip, int(server_port))
         else:
             try:
                 int_mc_ping = ping(internal_ip, int(server_port))
@@ -1698,6 +1833,7 @@ class ServerInstance:
             if (
                 HelperServers.get_server_type_by_id(server["server_id"])
                 == "minecraft-bedrock"
+                or HelperServers.get_server_type_by_id(server["server_id"]) == "raknet"
             ):
                 ping_data = Stats.parse_server_raknet_ping(int_mc_ping)
             else:
@@ -1808,10 +1944,15 @@ class ServerInstance:
         server_port = server_dt["server_port"]
 
         logger.debug(f"Pinging server '{self.name}' on {internal_ip}:{server_port}")
-        if HelperServers.get_server_type_by_id(server_id) == "minecraft-bedrock":
-            int_mc_ping = ping_bedrock(internal_ip, int(server_port))
+        if (
+            HelperServers.get_server_type_by_id(server_id) == "minecraft-bedrock"
+            or HelperServers.get_server_type_by_id(server_id) == "raknet"
+        ):
+            int_mc_ping = ping_raknet(internal_ip, int(server_port))
         else:
             int_mc_ping = ping(internal_ip, int(server_port))
+        # TODO MAKE BETTER identify based on db server type
+        # dont hammer servers with unrelated requests to their type
 
         int_data = False
         ping_data = {}
@@ -1819,7 +1960,7 @@ class ServerInstance:
         # otherwise people have gotten confused.
         if self.check_running():
             # if we got a good ping return, let's parse it
-            if HelperServers.get_server_type_by_id(server_id) != "minecraft-bedrock":
+            if HelperServers.get_server_type_by_id(server_id) == "minecraft-java":
                 if int_mc_ping:
                     int_data = True
                     ping_data = Stats.parse_server_ping(int_mc_ping)
