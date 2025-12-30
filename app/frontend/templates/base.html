@@ -320,6 +320,18 @@
           }
         })
       });
+      webSocket.on('download_progress', function (progress) {
+        try {
+          if (progress < 100) {
+            $("#download-progress").removeClass("d-none");
+            $("#download-progress-bar").css("width", progress);
+          } else {
+            $("#download-progress").addClass("d-none");
+          }
+        } catch {
+          console.log("Could not find dom element for update")
+        }
+      })
       webSocket.on('support_status_update', function (logs) {
         if (logs.percent >= 100) {
           document.getElementById('logs_progress_bar').innerHTML = '100%';
