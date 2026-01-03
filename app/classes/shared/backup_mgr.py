@@ -43,7 +43,7 @@ class BackupManager:
             self.tz = ZoneInfo("Europe/London")
 
     def restore_starter(  # pylint: disable=too-many-positional-arguments
-        self, backup_config, backup_location: Path, backup_file, svr_obj, in_place
+        self, backup_config, backup_location: Path, backup_file: str, svr_obj, in_place
     ):
         """Validates that a restore is correct and without traversal.
 
@@ -56,6 +56,45 @@ class BackupManager:
         """
         logger.debug("Starting backup restore validation")
 
+        # Backup file is only expected to be `datetime.zip` or `datetime.manifest`.
+        # We can do some intensive validation of this value by ensuring that the filename
+        # can actually resolve to a datetime. We will reject it if not.
+        backup_file_parts = backup_file.split(".")
+        if len(backup_file_parts) != 2:
+            logger.error(
+                "backup file given to restore is not of the correct format. Possible suspicious activity."
+            )
+            logger.error(
+                f"The filename we were given to restore was called `{backup_file}`, rejected because the split length was incorrect"
+            )
+
+            self.fail_backup(
+                Exception("Unable to validate requested backup file."),
+                backup_config,
+                svr_obj,
+            )
+            return
+
+        # We use a different timestamp format between snapshot backups and zip files. This is very funny
+        if backup_config["backup_type"] == "zip_vault":
+            timestamp_format = "%Y-%m-%d_%H-%M-%S"
+        else:
+            timestamp_format = "%Y-%m-%d-%H-%M-%S"
+
+        try:
+            _ = datetime.datetime.strptime(backup_file_parts[0], timestamp_format)
+        except ValueError as why:
+            # The given name of the backup file does not match what Crafty would write.
+            # This must be something we need to reject.
+            logger.error(f"Unable to parse a given backup filename with error {why}")
+
+            self.fail_backup(
+                Exception("Unable to validate requested backup file."),
+                backup_config,
+                svr_obj,
+            )
+            return
+
         backup_location = backup_location.resolve()
 
         try:
@@ -66,6 +105,12 @@ class BackupManager:
         except ValueError as why:
             logger.error(
                 f"A backup restore path traversal attempt was detected. Error: {why}."
+            )
+
+            self.fail_backup(
+                Exception("Unable to validate requested backup file."),
+                backup_config,
+                svr_obj,
             )
             return
 
