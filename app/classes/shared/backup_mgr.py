@@ -496,14 +496,16 @@ class BackupManager:
         return Path(backup_manifest_path).name
 
     def zip_vault_restore(self, server_path, backup_location, in_place) -> bool:
-        """Zip style restore function. Returns a boolean if an error was encountered or not.
+        """Zip style restore function. Returns a boolean if an error was encountered or
+        not.
 
         Args:
               server_path: Target to restore server to
               backup_location: Source zip file to restore
               in_place: Boolean value if servers should be restored in place
 
-        Returning: Boolean false if no error was experienced, true if an error was encountered.
+        Returning: Boolean false if no error was experienced, true if an error was
+        encountered.
         """
         error = False
         if not in_place:  # If user does not want to back up in place we will
@@ -519,7 +521,8 @@ class BackupManager:
         Args:
             server_path: Path to server directory
 
-        Returning: Boolean false if no error was encountered. True if an error was encountered.
+        Returning: Boolean false if no error was encountered. True if an error was
+        encountered.
         """
         error = False
         # clean the server dir

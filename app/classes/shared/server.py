@@ -1185,7 +1185,8 @@ class ServerInstance:
         # import the server again based on zipfile
         backup_config = HelpersManagement.get_backup_config(backup_id)
 
-        # This path gets resolved and checked for traversal in restore_starter so that it remains async.
+        # This path gets resolved and checked for traversal in restore_starter so that
+        # it remains async.
         # At this point this path cannot be trusted.
         backup_location = Path(
             backup_config["backup_location"], backup_config["backup_id"], backup_file
