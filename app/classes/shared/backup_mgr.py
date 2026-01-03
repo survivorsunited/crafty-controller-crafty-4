@@ -44,6 +44,31 @@ class BackupManager:
             )
             self.tz = ZoneInfo("Europe/London")
 
+    def broadcast_rejected_restore(self, backup_config, server) -> None:
+        """
+        Sends rejection message if a backup restore has been rejected.
+
+        Args:
+            backup_config: The backup configuration for the rejected restore
+            server: Server object.
+
+        Returns: None
+
+        """
+        logger.info(
+            f"Rejecting backup restore for server {server.name} (ID {server.server_id})"
+            f" Backup ID: {backup_config['backup_id']}"
+        )
+        server_users = PermissionsServers.get_server_user_list(server.server_id)
+        for user in server_users:
+            WebSocketManager().broadcast_user(
+                user,
+                "send_start_error",
+                self.helper.translation.translate(
+                    "notify", "restoreFailed", HelperUsers.get_user_lang_by_id(user)
+                ),
+            )
+
     def restore_starter(  # pylint: disable=too-many-positional-arguments
         self, backup_config, backup_location: Path, backup_file: str, svr_obj, in_place
     ):
@@ -59,25 +84,24 @@ class BackupManager:
         logger.debug("Starting backup restore validation")
 
         # Backup file is only expected to be `datetime.zip` or `datetime.manifest`.
-        # We can do some intensive validation of this value by ensuring that the filename
-        # can actually resolve to a datetime. We will reject it if not.
+        # We can do some intensive validation of this value by ensuring that the
+        # filename can actually resolve to a datetime. We will reject it if not.
         backup_file_parts = backup_file.split(".")
         if len(backup_file_parts) != 2:
             logger.error(
-                "backup file given to restore is not of the correct format. Possible suspicious activity."
+                "backup file given to restore is not of the correct format. Possible "
+                "suspicious activity."
             )
             logger.error(
-                f"The filename we were given to restore was called `{backup_file}`, rejected because the split length was incorrect"
+                f"The filename we were given to restore was called `{backup_file}`, "
+                f"rejected because the split length was incorrect"
             )
 
-            self.fail_backup(
-                backup_validation_exception,
-                backup_config,
-                svr_obj,
-            )
+            self.broadcast_rejected_restore(backup_config, svr_obj)
             return
 
-        # We use a different timestamp format between snapshot backups and zip files. This is very funny
+        # We use a different timestamp format between snapshot backups and zip files.
+        # This is very funny
         if backup_config["backup_type"] == "zip_vault":
             timestamp_format = "%Y-%m-%d_%H-%M-%S"
         else:
@@ -90,11 +114,7 @@ class BackupManager:
             # This must be something we need to reject.
             logger.error(f"Unable to parse a given backup filename with error {why}")
 
-            self.fail_backup(
-                backup_validation_exception,
-                backup_config,
-                svr_obj,
-            )
+            self.broadcast_rejected_restore(backup_config, svr_obj)
             return
 
         backup_location = backup_location.resolve()
@@ -109,11 +129,7 @@ class BackupManager:
                 f"A backup restore path traversal attempt was detected. Error: {why}."
             )
 
-            self.fail_backup(
-                backup_validation_exception,
-                backup_config,
-                svr_obj,
-            )
+            self.broadcast_rejected_restore(backup_config, svr_obj)
             return
 
         logger.info("Starting a restore after validation")
