@@ -23,6 +23,8 @@ from app.classes.shared.websocket_manager import WebSocketManager
 
 logger = logging.getLogger(__name__)
 
+backup_validation_exception = Exception("Unable to validate requested backup file.")
+
 
 class BackupManager:
     SNAPSHOT_BACKUP_DATE_FORMAT_STRING = "%Y-%m-%d-%H-%M-%S"
@@ -69,7 +71,7 @@ class BackupManager:
             )
 
             self.fail_backup(
-                Exception("Unable to validate requested backup file."),
+                backup_validation_exception,
                 backup_config,
                 svr_obj,
             )
@@ -89,7 +91,7 @@ class BackupManager:
             logger.error(f"Unable to parse a given backup filename with error {why}")
 
             self.fail_backup(
-                Exception("Unable to validate requested backup file."),
+                backup_validation_exception,
                 backup_config,
                 svr_obj,
             )
@@ -108,7 +110,7 @@ class BackupManager:
             )
 
             self.fail_backup(
-                Exception("Unable to validate requested backup file."),
+                backup_validation_exception,
                 backup_config,
                 svr_obj,
             )
