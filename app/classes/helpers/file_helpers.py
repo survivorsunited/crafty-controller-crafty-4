@@ -62,6 +62,7 @@ class FileHelpers:
         mimetypes.add_type(PLAIN_TEXT, ".conf")
         mimetypes.add_type(PLAIN_TEXT, ".properties")
         mimetypes.add_type(PLAIN_TEXT, ".env")
+        mimetypes.add_type(PLAIN_TEXT, ".sk")
         mimetypes.add_type("application/x-bat", ".ps1")
         mimetypes.add_type("text/x-log", ".log")
 
