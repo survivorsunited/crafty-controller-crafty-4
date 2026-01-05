@@ -1,4 +1,15 @@
 # Changelog
+## --- [4.7.1] - 2026/TBD
+### New features
+TBD
+### Bug fixes
+TBD
+### Tweaks
+TBD
+### Lang
+TBD
+<br><br>
+
 ## --- [4.7.0] - 2025/12/25
 ### Refactor
 - Overhaul/Replace `Server Files` panel to be more feature complete and user friendly ([Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/909) | [Merge Request](https://gitlab.com/crafty-controller/crafty-4/-/merge_requests/940))
