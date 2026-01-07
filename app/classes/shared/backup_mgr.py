@@ -100,6 +100,16 @@ class BackupManager:
             self.broadcast_rejected_restore(backup_config, svr_obj)
             return
 
+        allowed_extensions = ["zip", "manifest"]
+        if backup_file_parts[1] not in allowed_extensions:
+            logger.error(
+                f"Extension of given backup file to restore is not in allowed extension"
+                f" types. Possible suspicious activity. Got {backup_file}"
+            )
+
+            self.broadcast_rejected_restore(backup_config, svr_obj)
+            return
+
         # We use a different timestamp format between snapshot backups and zip files.
         # This is very funny
         if backup_config["backup_type"] == "zip_vault":
