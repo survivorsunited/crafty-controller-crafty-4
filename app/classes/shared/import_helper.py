@@ -9,6 +9,9 @@ from app.classes.controllers.servers_controller import ServersController
 from app.classes.helpers.helpers import Helpers
 from app.classes.helpers.file_helpers import FileHelpers
 from app.classes.shared.websocket_manager import WebSocketManager
+from app.classes.steamcmd.serverapps import SteamApps
+from app.classes.steamcmd.steamcmd import SteamCMD
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +22,7 @@ class ImportHelpers:
     def __init__(self, helper, file_helper):
         self.file_helper: FileHelpers = file_helper
         self.helper: Helpers = helper
+        self.steam_apps: SteamApps = SteamApps(helper)
 
     def import_jar_server(self, server_path, new_server_dir, port, new_id):
         import_thread = threading.Thread(
@@ -211,6 +215,55 @@ class ImportHelpers:
                 os.chmod(full_jar_path, 0o2760)
         # deletes temp dir
         FileHelpers.del_dirs(temp_dir)
+
+    def download_steam_server(self, app_id, server_id, server_dir, server_exe):
+        download_thread = threading.Thread(
+            target=self.create_steam_server,
+            daemon=True,
+            args=(app_id, server_id, server_dir, server_exe),
+            name=f"{server_id}_download",
+        )
+        download_thread.start()
+
+    def create_steam_server(self, app_id, server_id, server_dir, server_exe):
+        # TODO: what is the server exe called @zedifus
+        # @pretzel As we are not able to use steamcmd to launch game it
+        # is not possible to be populate as we dont know the executable.
+        server_exe = "game.exe"
+
+        # Initiate SteamCMD & game installing status.
+        ServersController.set_import(server_id)
+
+        # Set our storage locations
+        steamcmd_path = os.path.join(server_dir, "steamcmd_files")
+        gamefiles_path = os.path.join(server_dir, "gameserver_files")
+
+        # Ensure game and steam directories exist in server directory.
+        self.helper.ensure_dir_exists(steamcmd_path)
+        self.helper.ensure_dir_exists(gamefiles_path)
+
+        # Initialize SteamCMD
+        self.steam = SteamCMD(steamcmd_path)
+
+        # Install SteamCMD for managing game server files.
+        self.steam.install()
+
+        # Install the game server files.
+        self.steam.app_update(app_id, gamefiles_path)
+
+        # Set the server execuion command. TODO brainstorm how to approach.
+        full_jar_path = os.path.join(steamcmd_path, server_exe)
+        if Helpers.is_os_windows():
+            server_command = f'"{full_jar_path}"'  # TODO why called jar
+        else:
+            server_command = f"./{server_exe}"
+        logger.debug("command: " + server_command)
+
+        # Finalise SteamCMD & game installing status.
+        ServersController.finish_import(server_id)
+        server_users = PermissionsServers.get_server_user_list(server_id)
+        for user in server_users:
+            WebSocketManager().broadcast_user(user, "send_start_reload", {})
 
     def download_bedrock_server(self, path, new_id):
         bedrock_url = Helpers.get_latest_bedrock_url()

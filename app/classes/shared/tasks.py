@@ -144,7 +144,7 @@ class TasksManager:
                     svr.server_backup_threader(cmd["action_id"])
 
                 elif command == "update_executable":
-                    svr.jar_update()
+                    svr.server_upgrade()
                 else:
                     svr.send_command(command)
 
@@ -715,6 +715,18 @@ class TasksManager:
             "interval",
             hours=12,
             id="big_bucket",
+        )
+
+    def steamapps_cache_refresher(self):
+        logger.info("Refreshing SteamApps cache on start")
+        self.controller.steam_apps.refresh_cache(True)
+
+        logger.info("Scheduling SteamApps cache refresh service every 12 hours")
+        self.scheduler.add_job(
+            self.controller.steam_apps.refresh_cache,
+            "interval",
+            hours=12,
+            id="steamapps",
         )
 
     def realtime(self):

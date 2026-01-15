@@ -37,6 +37,8 @@ from app.classes.helpers.file_helpers import FileHelpers
 from app.classes.shared.import_helper import ImportHelpers
 from app.classes.minecraft.bigbucket import BigBucket
 from app.classes.shared.websocket_manager import WebSocketManager
+from app.classes.steamcmd.serverapps import SteamApps
+
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +51,10 @@ class Controller:
         self.helper: Helpers = helper
         self.file_helper: FileHelpers = file_helper
         self.import_helper: ImportHelpers = import_helper
+
         self.big_bucket: BigBucket = BigBucket(helper)
+        self.steam_apps: SteamApps = SteamApps(helper)
+
         self.users_helper: HelperUsers = HelperUsers(database, self.helper)
         self.totp_helper: HelperTOTP = HelperTOTP(database)
         self.roles_helper: HelperRoles = HelperRoles(database)
@@ -536,7 +541,13 @@ class Controller:
             if server_file_new != "":
                 # HACK: Horrible hack to make the server start
                 server_file = server_file_new
-
+        elif data["create_type"] == "steam_cmd":
+            server_file = "steamcmd.exe"
+            full_jar_path = os.path.join(new_server_path, server_file)
+            if Helpers.is_os_windows():
+                server_command = f'"{full_jar_path}"'
+            else:
+                server_command = f"./{server_file}"
         stop_command = data.get("stop_command", "")
         if stop_command == "":
             # TODO: different default stop commands for server creation types
@@ -553,7 +564,11 @@ class Controller:
         elif data["monitoring_type"] == "minecraft_bedrock":
             monitoring_port = data["minecraft_bedrock_monitoring_data"]["port"]
             monitoring_host = data["minecraft_bedrock_monitoring_data"]["host"]
-            monitoring_type = "minecraft-bedrock"
+            monitoring_type = "raknet"
+        elif data["monitoring_type"] == "steam_cmd":
+            monitoring_port = data["steam_cmd_monitoring_data"]["port"]
+            monitoring_host = data["steam_cmd_monitoring_data"]["host"]
+            monitoring_type = "steam_cmd"
         elif data["monitoring_type"] == "none":
             # TODO: this needs to be NUKED..
             # There shouldn't be anything set if there is nothing to monitor
@@ -634,7 +649,16 @@ class Controller:
                     monitoring_port,
                     new_server_id,
                 )
-
+        elif data["create_type"] == "steam_cmd":
+            server_exe = "steamcmd.exe"
+            if root_create_data["create_type"] == "download_exe":
+                ServersController.set_import(new_server_id)
+                self.import_helper.download_steam_server(
+                    create_data["app_id"],
+                    new_server_id,
+                    new_server_path,
+                    server_exe,
+                )
         exec_user = self.users.get_user_by_id(int(user_id))
         captured_roles = data.get("roles", [])
         # These lines create a new Role for the Server with full permissions
@@ -916,6 +940,7 @@ class Controller:
         created_by: int,
         server_type: str,
         server_host: str = "127.0.0.1",
+        app_id: int = None,
     ):
         # put data in the db
         new_id = self.servers.create_server(
@@ -930,6 +955,7 @@ class Controller:
             created_by,
             server_port,
             server_host,
+            app_id,
         )
 
         if not Helpers.check_file_exists(

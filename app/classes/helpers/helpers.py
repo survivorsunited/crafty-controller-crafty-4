@@ -143,7 +143,9 @@ class Helpers:
             self.root_dir, "app", "config", "db", "crafty.sqlite"
         )
         self.big_bucket_cache = os.path.join(self.config_dir, "bigbucket.json")
+        self.steamapps_cache = os.path.join(self.config_dir, "steamapps.json")
         self.credits_cache = os.path.join(self.config_dir, "credits.json")
+
         self.passhasher = PasswordHasher()
         self.exiting = False
 
