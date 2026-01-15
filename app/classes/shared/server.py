@@ -167,7 +167,8 @@ class ServerOutBuf:
                 break
 
     def new_line_handler(self, new_line):
-        new_line = re.sub("(\033\\[(0;)?[0-9]*[A-z]?(;[0-9])?m?)", " ", new_line)
+        # TODO: ensure that all this did was remove the escape sequence
+        # new_line = re.sub("(\033\\[(0;)?[0-9]*[A-z]?(;[0-9])?m?)", " ", new_line)
         new_line = re.sub("[A-z]{2}\b\b", "", new_line)
         highlighted = self.helper.log_colors(html.escape(new_line))
 

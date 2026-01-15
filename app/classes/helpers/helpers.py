@@ -836,7 +836,308 @@ class Helpers:
         for old, new in replacements:
             line = re.sub(old, new, line, flags=re.IGNORECASE)
 
-        return line
+        # ASCII color codes
+        # Regex to match the escape sequence
+        regex = r"(\x1b\[.+?m)"
+        matches = list(re.finditer(regex, line))
+
+        # Only do all the extra work if we have matches
+        if len(list(matches)) == 0:
+            return line
+
+        return self.ansi_color(line, matches)
+
+    def ansi_color(self, line, matches):
+        # [0] is the class and [1] is the style tag
+        match_styles = [self.gen_ansi_style(match.group()) for match in matches]
+
+        # (start, end)
+        match_locations = [match.span() for match in matches]
+
+        current_match = 0
+        open_spans = 0
+        result = ""
+        for i, char in enumerate(line):
+            if current_match < len(match_locations):
+                # If i is at the start of the match add the span for styling
+                if i == match_locations[current_match][0]:
+                    if (
+                        match_styles[current_match][0] == "ansi-reset"
+                        and open_spans > 0
+                    ):
+                        for _ in range(open_spans):
+                            result += "</span>"
+                            open_spans -= 1
+                    else:
+                        result += (
+                            "<span class='"
+                            + match_styles[current_match][0]
+                            + "'"
+                            + match_styles[current_match][1]
+                            + ">"
+                        )
+                        open_spans += 1
+                    current_match += 1
+                # If i is in the middle or at the end of a match do nothing
+                # current_match -1 because we already incremented
+                if current_match > 0 and i < match_locations[current_match - 1][1]:
+                    continue
+                # otherwise just push the character to the result
+                result += char
+            else:
+                # No more matches to process
+                # Push the rest of the line to the result
+                # result += line[i]
+                return result
+
+    def gen_ansi_style(self, code):
+        if code.find("\x1b[38;2;") > -1:
+            # Format: \x1b[38;2;85;255;255m
+            regex = r"(\d{1,3})[;,m]"
+            matches = re.findall(regex, code)
+
+            return (
+                "ansi-rgb",
+                "style='color: rgb("
+                + matches[2]
+                + ","
+                + matches[3]
+                + ","
+                + matches[4]
+                + ")'",
+            )
+        if code.find("\x1b[48;2;") > -1:
+            # Format: \x1b[48;2;85;255;255m
+            regex = r"(\d{1,3})[;,m]"
+            matches = re.findall(regex, code)
+
+            # Determine if white or black has higher contrast
+            text_color = "white"
+
+            if self.get_contrast(
+                (255, 255, 255), (matches[2], matches[3], matches[4])
+            ) < self.get_contrast((0, 0, 0), (matches[2], matches[3], matches[4])):
+                text_color = "black"
+
+            return (
+                "ansi-bg-rgb",
+                "style='background-color: rgb("
+                + matches[2]
+                + ","
+                + matches[3]
+                + ","
+                + matches[4]
+                + "); color: "
+                + text_color
+                + "'",
+            )
+        if code.find("\x1b[38;5;") > -1:
+            # Format: \x1b[38;5m
+            regex = r"(\d{1,3})[;,m]"
+            matches = re.findall(regex, code)
+
+            return (
+                "ansi-8bit",
+                "style='color: rgb" + str(self.ansi_8bit_to_rgb(int(matches[2]))) + "'",
+            )
+        if code.find("\x1b[48;5") > -1:
+            # Format: \x1b[48;5m
+            regex = r"(\d{1,3})[;,m]"
+            matches = re.findall(regex, code)
+
+            # Determine if white or black has higher contrast
+            text_color = "white"
+
+            if self.get_contrast(
+                (255, 255, 255), self.ansi_8bit_to_rgb(int(matches[2]))
+            ) < self.get_contrast((0, 0, 0), self.ansi_8bit_to_rgb(int(matches[2]))):
+                text_color = "black"
+
+            return (
+                "ansi-bg-8bit",
+                "style='background-color: rgb"
+                + str(self.ansi_8bit_to_rgb(int(matches[2])))
+                + "; color: "
+                + text_color
+                + "'",
+            )
+        if code == "\x1b[30m":
+            return ("ansi-black", "style='color: black'")
+        if code == "\x1b[31m":
+            return ("ansi-red", "style='color: var(--red)'")
+        if code == "\x1b[32m":
+            return ("ansi-green", "style='color: var(--green)'")
+        if code == "\x1b[33m":
+            return ("ansi-yellow", "style='color: var(--yellow)'")
+        if code == "\x1b[34m":
+            return ("ansi-blue", "style='color: var(--blue)'")
+        if code == "\x1b[35m":
+            return ("ansi-purple", "style='color: var(--purple)'")
+        if code == "\x1b[36m":
+            return ("ansi-cyan", "style='color: var(--cyan)'")
+        if code == "\x1b[37m":
+            return ("ansi-white", "style='color: var(--white)'")
+        if code == "\x1b[40m":
+            return ("ansi-bg-black", "style='background-color: black'")
+        if code == "\x1b[41m":
+            return ("ansi-bg-red", "style='background-color: var(--red); color: black'")
+        if code == "\x1b[42m":
+            return (
+                "ansi-bg-green",
+                "style='background-color: var(--green); color: black'",
+            )
+        if code == "\x1b[43m":
+            return (
+                "ansi-bg-yellow",
+                "style='background-color: var(--yellow); color: black'",
+            )
+        if code == "\x1b[44m":
+            return (
+                "ansi-bg-blue",
+                "style='background-color: var(--blue); color: black'",
+            )
+        if code == "\x1b[45m":
+            return (
+                "ansi-bg-purple",
+                "style='background-color: var(--purple); color: black'",
+            )
+        if code == "\x1b[46m":
+            return (
+                "ansi-bg-cyan",
+                "style='background-color: var(--cyan); color: black'",
+            )
+        if code == "\x1b[47m":
+            return (
+                "ansi-bg-white",
+                "style='background-color: var(--white); color: black'",
+            )
+        if code == "\x1b[90m":
+            return ("ansi-light-grey", "style='color: var(--grey)'")
+        if code == "\x1b[91m":
+            return ("ansi-light-red", "style='color: var(--red)'")
+        if code == "\x1b[92m":
+            return ("ansi-light-green", "style='color: var(--green)'")
+        if code == "\x1b[93m":
+            return ("ansi-light-yellow", "style='color: var(--yellow)'")
+        if code == "\x1b[94m":
+            return ("ansi-light-blue", "style='color: var(--blue)'")
+        if code == "\x1b[95m":
+            return ("ansi-light-purple", "style='color: var(--purple)'")
+        if code == "\x1b[96m":
+            return ("ansi-light-cyan", "style='color: var(--cyan)'")
+        if code == "\x1b[97m":
+            return ("ansi-light-white", "style='color: var(--white)'")
+        if code == "\x1b[100m":
+            return ("ansi-bg-light-grey", "style='background-color: var(--grey-light)'")
+        if code == "\x1b[101m":
+            return (
+                "ansi-bg-light-red",
+                "style='background-color: var(--red); color: black'",
+            )
+        if code == "\x1b[102m":
+            return (
+                "ansi-bg-light-green",
+                "style='background-color: var(--green); color: black'",
+            )
+        if code == "\x1b[103m":
+            return (
+                "ansi-bg-light-yellow",
+                "style='background-color: var(--yellow); color: black'",
+            )
+        if code == "\x1b[104m":
+            return (
+                "ansi-bg-light-blue",
+                "style='background-color: var(--blue); color: black'",
+            )
+        if code == "\x1b[105m":
+            return (
+                "ansi-bg-light-purple",
+                "style='background-color: var(--purple); color: black'",
+            )
+        if code == "\x1b[106m":
+            return (
+                "ansi-bg-light-cyan",
+                "style='background-color: var(--cyan); color: black'",
+            )
+        if code == "\x1b[107m":
+            return (
+                "ansi-bg-light-white",
+                "style='background-color: var(--white); color: black'",
+            )
+        return ("ansi-reset", "")
+
+    # Once browser support is there we should use color: color-contrast() instead of this.
+    @staticmethod
+    def get_contrast(color1, color2):
+        def get_luminence(color):
+            rgb = []
+            for c in color:
+                c = int(c)
+                c = c / 255.0
+                if c <= 0.03928:
+                    c = c / 12.92
+                else:
+                    c = ((c + 0.055) / 1.055) ** 2.4
+                rgb.append(c)
+
+            return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+
+        lum1 = get_luminence(color1)
+        lum2 = get_luminence(color2)
+
+        if lum1 > lum2:
+            return (lum1 + 0.05) / (lum2 + 0.05)
+
+        return (lum2 + 0.05) / (lum1 + 0.05)
+
+    @staticmethod
+    def ansi_8bit_to_rgb(ansi_code):
+        if 0 <= ansi_code <= 7:
+            # Standard colors
+            colors = [
+                (0, 0, 0),  # Black
+                (128, 0, 0),  # Red
+                (0, 128, 0),  # Green
+                (128, 128, 0),  # Yellow
+                (0, 0, 128),  # Blue
+                (128, 0, 128),  # Magenta
+                (0, 128, 128),  # Cyan
+                (192, 192, 192),  # White
+            ]
+            return colors[ansi_code]
+
+        if 8 <= ansi_code <= 15:
+            # High-intensity colors
+            colors = [
+                (128, 128, 128),  # Bright Black (Gray)
+                (255, 0, 0),  # Bright Red
+                (0, 255, 0),  # Bright Green
+                (255, 255, 0),  # Bright Yellow
+                (0, 0, 255),  # Bright Blue
+                (255, 0, 255),  # Bright Magenta
+                (0, 255, 255),  # Bright Cyan
+                (255, 255, 255),  # Bright White
+            ]
+            return colors[ansi_code - 8]
+
+        if 16 <= ansi_code <= 231:
+            # 216 color cube
+            ansi_code -= 16
+            r = (ansi_code // 36) % 6 * 51
+            g = (ansi_code // 6) % 6 * 51
+            b = (ansi_code % 6) * 51
+            return (r, g, b)
+
+        if 232 <= ansi_code <= 255:
+            # Grayscale colors
+            level = (ansi_code - 232) * 10 + 8
+            return (level, level, level)
+
+        return (
+            0,
+            0,
+            0,
+        )  # Default to black
 
     @staticmethod
     def validate_traversal(base_path, filename):
