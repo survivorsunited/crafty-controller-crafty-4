@@ -46,8 +46,24 @@ class ApiServersServerLogsHandler(BaseApiHandler):
             auth_data[5],
         )
         server_permissions = self.controller.server_perms.get_permissions(mask)
-        if EnumPermissionsServer.LOGS not in server_permissions:
+        if (
+            EnumPermissionsServer.LOGS not in server_permissions
+            and EnumPermissionsServer.TERMINAL not in server_permissions
+        ):
             # if the user doesn't have Logs permission, return an error
+            return self.finish_json(
+                400,
+                {
+                    "status": "error",
+                    "error": "NOT_AUTHORIZED",
+                    "error_data": self.helper.translation.translate(
+                        "validators", "insufficientPerms", auth_data[4]["lang"]
+                    ),
+                },
+            )
+        if EnumPermissionsServer.LOGS not in server_permissions and read_log_file:
+            # if the user doesn't have Logs permission, and is trying to read the file
+            # return an error
             return self.finish_json(
                 400,
                 {
