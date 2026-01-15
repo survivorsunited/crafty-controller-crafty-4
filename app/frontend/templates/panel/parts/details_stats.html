@@ -5,27 +5,42 @@
         <div class="row">
           <div class="col-sm-4">
             {% if data['server_stats']['running'] %}
-            <b>{{ translate('serverStats', 'serverStatus', data['lang']) }}:</b> <span id="status" class="text-success">{{ translate('serverStats', 'online', data['lang']) }}</span><br />
-            <b>{{ translate('serverStats', 'serverStarted', data['lang']) }}:</b> <span id="started">{{ data['server_stats']['started'] }}</span><br />
-            <b>{{ translate('serverStats', 'serverUptime', data['lang']) }}:</b> <span id="uptime">{{ translate('serverStats', 'errorCalculatingUptime', data['lang']) }}</span>
+            <b>{{ translate('serverStats', 'serverStatus', data['lang']) }}:</b> <span id="status"
+              class="text-success">{{ translate('serverStats', 'online', data['lang']) }}</span><br />
+            <b>{{ translate('serverStats', 'serverStarted', data['lang']) }}:</b> <span id="started">{{
+              data['server_stats']['started'] }}</span><br />
+            <b>{{ translate('serverStats', 'serverUptime', data['lang']) }}:</b> <span id="uptime">{{
+              translate('serverStats', 'errorCalculatingUptime', data['lang']) }}</span>
             {% elif data['server_stats']['crashed'] %}
-            <b>{{ translate('serverStats', 'serverStatus', data['lang']) }}:</b> <span id="status" class="text-danger"> <i class="fas fa-exclamation-triangle"></i> {{ translate('dashboard', 'crashed', data['lang']) }}</span><br />
-            <b>{{ translate('serverStats', 'serverStarted', data['lang']) }}:</b> <span id="started" class="text-danger"> <i class="fas fa-exclamation-triangle"></i> {{ translate('dashboard', 'crashed',data['lang']) }}</span><br />
-            <b>{{ translate('serverStats', 'serverUptime', data['lang']) }}:</b> <span id="uptime" class="text-danger"> <i class="fas fa-exclamation-triangle"></i> {{ translate('dashboard', 'crashed', data['lang']) }}</span>
+            <b>{{ translate('serverStats', 'serverStatus', data['lang']) }}:</b> <span id="status" class="text-danger">
+              <i class="fas fa-exclamation-triangle"></i> {{ translate('dashboard', 'crashed', data['lang'])
+              }}</span><br />
+            <b>{{ translate('serverStats', 'serverStarted', data['lang']) }}:</b> <span id="started"
+              class="text-danger"> <i class="fas fa-exclamation-triangle"></i> {{ translate('dashboard',
+              'crashed',data['lang']) }}</span><br />
+            <b>{{ translate('serverStats', 'serverUptime', data['lang']) }}:</b> <span id="uptime" class="text-danger">
+              <i class="fas fa-exclamation-triangle"></i> {{ translate('dashboard', 'crashed', data['lang']) }}</span>
             {% else %}
-            <b>{{ translate('serverStats', 'serverStatus', data['lang']) }}:</b> <span id="status" class="text-warning">{{ translate('serverStats', 'offline', data['lang']) }}</span><br />
-            <b>{{ translate('serverStats', 'serverStarted', data['lang']) }}:</b> <span id="started" class="text-warning">{{ translate('serverStats', 'offline', data['lang']) }}</span><br />
-            <b>{{ translate('serverStats', 'serverUptime', data['lang']) }}:</b> <span id="uptime" class="text-warning">{{ translate('serverStats', 'offline', data['lang']) }}</span>
+            <b>{{ translate('serverStats', 'serverStatus', data['lang']) }}:</b> <span id="status"
+              class="text-warning">{{ translate('serverStats', 'offline', data['lang']) }}</span><br />
+            <b>{{ translate('serverStats', 'serverStarted', data['lang']) }}:</b> <span id="started"
+              class="text-warning">{{ translate('serverStats', 'offline', data['lang']) }}</span><br />
+            <b>{{ translate('serverStats', 'serverUptime', data['lang']) }}:</b> <span id="uptime"
+              class="text-warning">{{ translate('serverStats', 'offline', data['lang']) }}</span>
             {% end %}
             <br>
-            <b>{{ translate('serverStats', 'serverTimeZone', data['lang']) }}:</b> <span class="text-info">{{ data['serverTZ'] }}</span>
+            <b>{{ translate('serverStats', 'serverTimeZone', data['lang']) }}:</b> <span class="text-info">{{
+              data['serverTZ'] }}</span>
           </div>
 
           <div class="col-sm-3">
-            <b>{{ translate('serverStats', 'cpuUsage', data['lang']) }}:</b> <span id="cpu">{{ data['server_stats']['cpu'] }}%</span> <br />
-            <b>{{ translate('serverStats', 'memUsage', data['lang']) }}:</b> <span id="mem">{{ data['server_stats']['mem'] }}</span> <br />
+            <b>{{ translate('serverStats', 'cpuUsage', data['lang']) }}:</b> <span id="cpu">{{
+              data['server_stats']['cpu'] }}%</span> <br />
+            <b>{{ translate('serverStats', 'memUsage', data['lang']) }}:</b> <span id="mem">{{
+              data['server_stats']['mem'] }}</span> <br />
             {% if data['server_stats']['int_ping_results'] %}
-            <b>{{ translate('serverStats', 'players', data['lang']) }}:</b> <span id="players">{{ data['server_stats']['online'] }} / {{ data['server_stats']['max'] }}</span><br />
+            <b>{{ translate('serverStats', 'players', data['lang']) }}:</b> <span id="players">{{
+              data['server_stats']['online'] }} / {{ data['server_stats']['max'] }}</span><br />
             {% else %}
             <b>{{ translate('serverStats', 'players', data['lang']) }}:</b> <span id="players">0/0</span><br />
             {% end %}
@@ -33,12 +48,16 @@
 
           <div class="col-sm-5">
             {% if data['server_stats']['version'] != 'False' %}
-            <b>{{ translate('serverStats', 'version', data['lang']) }}:</b> <span id="version">{{ data['server_stats']['version'] }}</span><br />
-            <b>{{ translate('serverStats', 'description', data['lang']) }}:</b> <span id="input_motd" class="input_motd">{{ translate('serverStats', 'loadingMotd', data['lang']) }}</span>
+            <b>{{ translate('serverStats', 'version', data['lang']) }}:</b> <span id="version">{{
+              data['server_stats']['version'] }}</span><br />
+            <b>{{ translate('serverStats', 'description', data['lang']) }}:</b> <span id="input_motd"
+              class="input_motd">{{ translate('serverStats', 'loadingMotd', data['lang']) }}</span>
             <br />
             {% else %}
-            <b>{{ translate('serverStats', 'version', data['lang']) }}:</b> <span id="version">{{ translate('serverStats', 'unableToConnect', data['lang']) }}</span> <br />
-            <b>{{ translate('serverStats', 'description', data['lang']) }}:</b> <span id="input_motd" class="input_motd">{{ translate('serverStats', 'unableToConnect', data['lang']) }}</span> <br />
+            <b>{{ translate('serverStats', 'version', data['lang']) }}:</b> <span id="version">{{
+              translate('serverStats', 'unableToConnect', data['lang']) }}</span> <br />
+            <b>{{ translate('serverStats', 'description', data['lang']) }}:</b> <span id="input_motd"
+              class="input_motd">{{ translate('serverStats', 'unableToConnect', data['lang']) }}</span> <br />
             {% end %}
             <b>Server Type: <span class="text-info">{{data['server_stats']['server_type']}}</span></b>
 
@@ -133,6 +152,49 @@
     initParser('input_motd', 'input_motd');
 
   });
+  function createPlayerActionsTd(playerName, running) {
+    if (!running) {
+      const td = $("<td>");
+      const div = $("<div>");
+      const span = $("<span>");
+
+      span.text("Unavailable");
+      span.append("<br>");
+      span.append("(Server Offline)");
+
+      div.append(span);
+      td.append(div);
+      return td
+    }
+    const td = $("<td>", { class: "col-3" });
+    const row = $("<div>", { class: "row" });
+
+    const actions = [
+      { label: "Ban", cmd: "ban", btnClass: "btn btn-danger" },
+      { label: "Kick", cmd: "kick", btnClass: "btn btn-outline-danger" },
+      { label: "OP", cmd: "op", btnClass: "btn btn-warning" },
+      { label: "De-OP", cmd: "deop", btnClass: "btn btn-outline-warning" }
+    ];
+
+    actions.forEach(action => {
+      const btn = $("<button>", {
+        type: "button",
+        class: action.btnClass,
+        text: action.label
+      });
+
+      // Attach behavior safely
+      btn.on("click", () => {
+        send_command_to_server(`${action.cmd} ${playerName}`);
+      });
+
+      const col = $("<div>", { class: "col" }).append(btn);
+      row.append(col);
+    });
+
+    td.append(row);
+    return td;
+  }
 
   function update_server_details(server) {
     server_status = document.getElementById('status');
@@ -210,31 +272,44 @@
     initParser('input_motd', 'input_motd');
     let text = ""
     let players = server.players_cache;
-    for (let i = 0; i < players.length; i++) {
-      text += `<tr id="playerItem-${players[i]["name"]}" class="playerItem-- text-center">`;
-      text += `<td class="no-scroll col-5"><strong>${players[i]["name"]}</strong></td>`;
-      if (players[i]["status"] === "Online") {
-        text += `<td class="col-4"><span class="text-success"><i class="fas fa-signal"></i> ${players[i]['status']}</span></td>`
-      } else {
-        text += `<td class="col-4"><span class="text-warning"><i class="fa-regular fa-circle-xmark"></i><span class="offline-status">&nbsp;${players[i]['status']}</span><span class="conn-break"> Last connection :<br> ${players[i]['last_seen']}</span></td>`
+    $("#player-body").empty();
+    for (let player of players) {
+      const tr = $("<tr>").attr("id", `playerItem-${player["name"]}`).addClass("playerItem--").addClass("text-center");
+      const td1 = $("<td>").addClass("no-scroll").addClass("col-5");
+      const strong_text = $("<strong>").text(player["name"])
+      const td2 = $("<td>");
+      const span2 = $("<span>");
+      const i2 = $("<i>");
+      if (player["status"] === "Online") {
+        td2.addClass("col-4").append();
+        span2.addClass("text-success");
+        i2.addClass("fas").addClass("fa-signal");
+        span2.text(player["status"]);
       }
-      if (server["running"]) {
-        text += `<td class="col-3">
-                    <div class="row">
-                      <div class="col"><button onclick="send_command_to_server('ban ${players[i]['name']}')" type="button" class="btn btn-danger">Ban</button></div>
-                      <div class="col"><button onclick="send_command_to_server('kick ${players[i]['name']}')" type="button" class="btn btn-outline-danger">Kick</button></div>
-                      <div class="col"><button onclick="send_command_to_server('op ${players[i]['name']}')" type="button" class="btn btn-warning">OP</button></div>
-                      <div class="col"><button onclick="send_command_to_server('deop ${players[i]['name']}')" type="button" class="btn btn-outline-warning">De-OP</button></div>
-                    </div>
-                  </td>`
-      } else {
-        text += `<td><div><span> Unavailable<br> (Server Offline)</span></div></td>`
+      else {
+        td2.addClass("col-4");
+        span2.addClass("offline-status");
+        i2.addClass("fa-regular").addClass("fa-circle-xmark");
+        span2.append(i2);
+        td2.append(span2);
+        span2.text(player["last_seen"]);
       }
 
+
+      span2.append(i2);
+      td2.append(span2);
+
+      const td3 = createPlayerActionsTd(player["name"], server["running"])
+      text += `<td><div><span> Unavailable<br> (Server Offline)</span></div></td>`
+      td1.append(strong_text);
+      tr.append(td1);
+      tr.append(td2)
+      tr.append(td3)
+      $("#player-body").append(tr);
     }
-    $("#player-body").html(text);
 
   }
+
   //used to get cookies from browser - this is part of tornados xsrf protection - it's for extra security
   function getCookie(name) {
     var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
