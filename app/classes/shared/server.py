@@ -1205,8 +1205,7 @@ class ServerInstance:
         except ValueError as why:
             # Crash out on possible traversal.
             logger.error(
-                "Possible backup traversal detected on restore request.",
-                why,
+                f"Possible backup traversal detected on restore request: {why}",
             )
 
             server_users = PermissionsServers.get_server_user_list(self.server_id)
