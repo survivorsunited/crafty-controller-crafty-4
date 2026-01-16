@@ -70,14 +70,14 @@ class BackupManager:
             )
 
     def restore_starter(  # pylint: disable=too-many-positional-arguments
-        self, backup_config, backup_location: Path, backup_file: str, svr_obj, in_place
+        self, backup_config, backup_location: Path, svr_obj, in_place
     ):
         """Validates that a restore is correct and without traversal.
+        Assumes backup_location has already been validated for traversal.
 
         Args:
             backup_config: The backup configuration for this backup.
-            backup_location: Path to the backup_location.
-            backup_file: File to restore, zip or snapshot manifest.
+            backup_location: Full path to the backup file.
             svr_obj: The server object.
             in_place: Should the backup restore in place?
         """
@@ -86,6 +86,8 @@ class BackupManager:
         # Backup file is only expected to be `datetime.zip` or `datetime.manifest`.
         # We can do some intensive validation of this value by ensuring that the
         # filename can actually resolve to a datetime. We will reject it if not.
+        backup_location = Path(backup_location)
+        backup_file = backup_location.name
         backup_file_parts = backup_file.split(".")
         if len(backup_file_parts) != 2:
             logger.error(
@@ -123,21 +125,6 @@ class BackupManager:
             # The given name of the backup file does not match what Crafty would write.
             # This must be something we need to reject.
             logger.error(f"Unable to parse a given backup filename with error {why}")
-
-            self.broadcast_rejected_restore(backup_config, svr_obj)
-            return
-
-        backup_location = backup_location.resolve()
-
-        try:
-            Helpers.validate_traversal(
-                backup_config["backup_location"], backup_location
-            )
-            Helpers.validate_traversal(backup_location, backup_file)
-        except ValueError as why:
-            logger.error(
-                f"A backup restore path traversal attempt was detected. Error: {why}."
-            )
 
             self.broadcast_rejected_restore(backup_config, svr_obj)
             return

@@ -48,7 +48,7 @@ def test_restore_starter_allowed_backups(monkeypatch, tmp_path, test_case):
         assert mock_backup_config["backup_type"] == backup_type
         assert mock_backup_config["backup_location"] == str(tmp_path)
         assert mock_backup_config["known_test_value"] == "test_value"
-        assert mock_backup_location == tmp_path
+        assert mock_backup_location == tmp_path / backup_file
         assert mock_backup_file == backup_file
 
     monkeypatch.setattr(
@@ -57,15 +57,15 @@ def test_restore_starter_allowed_backups(monkeypatch, tmp_path, test_case):
 
     # End test setup
 
-    backup_location = tmp_path
+    backup_location = tmp_path / backup_file
     backup_config = {
         "backup_id": 1,
         "backup_type": backup_type,
-        "backup_location": str(backup_location),
+        "backup_location": str(tmp_path),
         "known_test_value": "test_value",
     }
 
-    mgr.restore_starter(backup_config, backup_location, backup_file, MagicMock(), False)
+    mgr.restore_starter(backup_config, backup_location, MagicMock(), False)
 
 
 @pytest.mark.parametrize(
@@ -115,4 +115,5 @@ def test_restore_starter_invalid_backup_file(
         "test_value": "known_test_value",
     }
 
-    mgr.restore_starter(backup_config, tmp_path, backup_file, MagicMock(), False)
+    backup_location = tmp_path / backup_file
+    mgr.restore_starter(backup_config, backup_location, MagicMock(), False)
