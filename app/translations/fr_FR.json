@@ -252,7 +252,9 @@
         "schedule_desc": "Nous avons détecté que certaines ou toutes vos tâches planifiées n’ont pas été transférées avec succès lors de la mise à jour. Veuillez vérifier vos plannings dans l’onglet tâches planifiées.",
         "accountSettings": "Paramètres du compte",
         "backup_title": "Avertissement de migration des sauvegardes",
-        "schedule_title": "Avertissement de migration des tâches planifiées"
+        "schedule_title": "Avertissement de migration des tâches planifiées",
+        "restoreFailed": "Échec de la restauration de la sauvegarde. Impossible de supprimer les fichiers du répertoire du serveur.",
+        "restoreSuccess": "Fichiers serveur restaurés avec succès."
     },
     "offline": {
         "offline": "Hors ligne",
@@ -462,8 +464,8 @@
         "createFileQuestion": "Quel nom souhaitez-vous donner au nouveau fichier ?",
         "default": "Défaut",
         "delete": "Supprimer",
-        "deleteItemQuestion": "Êtes-vous sûr de vouloir supprimer \" + name + \" ?",
-        "deleteItemQuestionMessage": "Vous êtes sur le point de supprimer \\\"\" + path + \"\\\"!<br/><br/> Cette action est irréversible et le fichier sera perdu à jamais !",
+        "deleteItemQuestion": "Vous supprimez ",
+        "deleteItemQuestionMessage": "Cette action sera irréversible et sera définitive !",
         "download": "Télécharger",
         "editingFile": "Édition du fichier",
         "error": "Erreur lors de la récupération des fichiers",
@@ -476,14 +478,28 @@
         "rename": "Renommer",
         "renameItemQuestion": "Quel devrait être le nouveau nom ?",
         "save": "Sauvegarder",
-        "size": "Changer la taille de l'éditeur",
-        "stayHere": "NE FERMEZ PAS CETTE PAGE !",
+        "size": "Taille",
         "unsupportedLanguage": "Attention : Ce n'est pas un type de fichier supporté",
         "unzip": "Décompresser",
         "upload": "Téléverser",
         "uploadTitle": "Téléverser les fichiers vers : ",
         "waitUpload": "Merci de patienter pendant que nous téléversons vos fichiers... Cela peut prendre un certain temps.",
-        "yesDelete": "Oui, je comprends les conséquences"
+        "yesDelete": "Oui, je comprends les conséquences",
+        "cancel": "Annuler",
+        "changeConflict": "Conflit d'état du serveur",
+        "copy": "Copier",
+        "copying": "Copie",
+        "modified": "Modifié",
+        "more": "Charger plus",
+        "move": "Déplacer",
+        "moving": "Déplacement",
+        "name": "Nom",
+        "operationStatus": "État des opérations sur les fichiers",
+        "options": "Options",
+        "overwrite": "Remplacer les modifications sur le serveur",
+        "repull": "Importer le fichier depuis le serveur (toutes les modifications locales seront perdues)",
+        "serverModified": "L'état de ce fichier a changé sur le serveur depuis que vous avez chargé cette page. Veuillez choisir une option.",
+        "type": "Type"
     },
     "serverMetrics": {
         "resetZoom": "Réinitialiser le zoom",
@@ -588,7 +604,7 @@
         "absoluteZipPath": "Chemin absolu de votre serveur",
         "addRole": "Ajouter le serveur au(x) rôle(s) existant(s)",
         "autoCreate": "Si aucun n'est sélectionné, Crafty en créera un !",
-        "bePatient": "Merci de patienter pendant que nous ' + (importing ? 'importons' :  'téléchargeons') + ' le serveur",
+        "bePatient": "Merci de patienter pendant que nous créons votre serveur",
         "buildServer": "Créer un serveur !",
         "clickRoot": "Cliquer ici pour sélectionner le dossier racine",
         "close": "Fermer",
@@ -721,7 +737,8 @@
         "filesPageLen": "La longueur doit être supérieure à 1 pour cette propriété",
         "insufficientPerms": "Erreur de permission : permissions manquantes pour cette ressource",
         "mfaName": "La saisie doit être une chaîne de caractères d'au moins 3 caractères pour ce champ",
-        "passProp": "Le mot de passe doit être une chaîne d'au moins 8 caractères."
+        "passProp": "Le mot de passe doit être une chaîne d'au moins 8 caractères.",
+        "typeEpoch": "doit être une valeur temporelle"
     },
     "webhooks": {
         "areYouSureDel": "Êtes-vous sûr de vouloir supprimer ce webhook ?",
@@ -746,7 +763,9 @@
         "type": "Type de Webhook",
         "url": "Lien URL du Webhook",
         "webhook_body": "Corps du Webhook",
-        "webhooks": "Webhooks"
+        "webhooks": "Webhooks",
+        "documentation": "Veuillez vous reporter à cette documentation pour obtenir des informations sur les variables dynamiques.",
+        "jinja2": "Le moteur webhook de Crafty utilise Jinja2 pour le rendu dynamique des messages."
     },
     "otp": {
         "mfaWarn": "Vous devez avoir l’authentification multifacteur activée pour utiliser ce système. Veuillez créer une clé MFA. Si vous voyez ce message alors que vous avez déjà créé une clé, veuillez vous déconnecter puis vous reconnecter avec MFA.",
@@ -805,5 +824,10 @@
         "show_errors": "Afficher les erreurs de débogage du serveur web",
         "submit": "Envoyer",
         "superMFA": "Exiger des super-utilisateurs qu'ils activent l'authentification multi-facteurs (MFA)"
+    },
+    "serverFilesEditor": {
+        "saved": "Enregistré",
+        "save": "Enregistrer les modifications",
+        "unsavedChanges": "Êtes-vous sûr de vouloir quitter ? Vous avez des modifications non enregistrées."
     }
 }

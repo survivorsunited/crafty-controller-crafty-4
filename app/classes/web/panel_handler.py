@@ -831,6 +831,7 @@ class PanelHandler(BaseHandler):
                 page_data["config-json"] = self.helper.get_categorized_settings(
                     self.helper.get_all_settings()
                 )
+
                 page_data["availables_languages"] = []
                 page_data["all_languages"] = []
                 page_data["all_partitions"] = self.helper.get_all_mounts()
@@ -1630,6 +1631,8 @@ class PanelHandler(BaseHandler):
 
         elif page == "wiki":
             template = "panel/wiki.html"
+        elif page == "edit_file":
+            template = "panel/server_file_edit.html"
         if self.helper.crafty_starting:
             template = "panel/loading.html"
         self.render(

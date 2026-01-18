@@ -78,9 +78,6 @@ def callback(called_func):
                         )
 
                         # Extract source context from kwargs if present
-                        source_type = kwargs.get("source_type", "unknown")
-                        source_id = kwargs.get("source_id", "")
-                        source_name = kwargs.get("source_name", "")
                         backup_name = ""
                         backup_size = ""
                         backup_link = ""
@@ -99,9 +96,6 @@ def callback(called_func):
                             "server_id": args[0].server_id,
                             "command": command,
                             "event_type": event_type,
-                            "source_type": source_type,
-                            "source_id": source_id,
-                            "source_name": source_name,
                             "backup_name": backup_name,
                             "backup_size": backup_size,
                             "backup_link": backup_link,
@@ -451,7 +445,7 @@ class ServerInstance:
         if self.helper.dir_migration:
             WebSocketManager().broadcast_user(
                 user_id,
-                "send_start_error",
+                "send_error",
                 {
                     "error": self.helper.translation.translate(
                         "error",
@@ -466,7 +460,7 @@ class ServerInstance:
             if user_id:
                 WebSocketManager().broadcast_user(
                     user_id,
-                    "send_start_error",
+                    "send_error",
                     {
                         "error": self.helper.translation.translate(
                             "error", "not-downloaded", user_lang
@@ -545,7 +539,7 @@ class ServerInstance:
             if user_id:
                 WebSocketManager().broadcast_user(
                     user_id,
-                    "send_start_error",
+                    "send_error",
                     {
                         "error": self.helper.translation.translate(
                             "error", "not-downloaded", user_lang
@@ -581,7 +575,7 @@ class ServerInstance:
                 if user_id:
                     WebSocketManager().broadcast_user(
                         user_id,
-                        "send_start_error",
+                        "send_error",
                         {
                             "error": self.helper.translation.translate(
                                 "error", "start-error", user_lang
@@ -608,7 +602,7 @@ class ServerInstance:
                     if user_id:
                         WebSocketManager().broadcast_user(
                             user_id,
-                            "send_start_error",
+                            "send_error",
                             {
                                 "error": self.helper.translation.translate(
                                     "error", "noJava", user_lang
@@ -622,7 +616,7 @@ class ServerInstance:
                 if user_id:
                     WebSocketManager().broadcast_user(
                         user_id,
-                        "send_start_error",
+                        "send_error",
                         {
                             "error": self.helper.translation.translate(
                                 "error", "start-error", user_lang
@@ -669,7 +663,7 @@ class ServerInstance:
                 # Sends port reminder message.
                 WebSocketManager().broadcast_user(
                     user_id,
-                    "send_start_error",
+                    "send_error",
                     {
                         "error": self.helper.translation.translate(
                             "error", "portReminder", user_lang
@@ -717,7 +711,7 @@ class ServerInstance:
             if not Helpers.check_internet():
                 WebSocketManager().broadcast_user(
                     user_id,
-                    "send_start_error",
+                    "send_error",
                     {
                         "error": self.helper.translation.translate(
                             "error", "internet", user_lang
