@@ -8,7 +8,7 @@ import logging.config
 import uuid
 import random
 
-from app.classes.minecraft.bedrock_ping import BedrockPing
+from app.classes.remote_stats.bedrock_ping import BedrockPing
 from app.classes.shared.console import Console
 
 logger = logging.getLogger(__name__)
