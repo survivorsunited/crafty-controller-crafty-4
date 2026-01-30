@@ -182,9 +182,11 @@
                       {% if data['server_stats']['server_id']['crash_detection'] %}
                       <input type="checkbox" class="custom-control-input" id="crash_detection" name="crash_detection" checked="" value="1">
                       <label class="custom-control-label" for="crash_detection">&nbsp;&nbsp;{{ translate('serverConfig', 'serverCrashDetection', data['lang']) }}</label>
+                      <small class="form-text text-muted">Automatically restarts the server when it stops and captures crash logs for debugging.</small>
                       {% else %}
                       <input type="checkbox" class="custom-control-input" id="crash_detection" name="crash_detection" value="1">
                       <label class="custom-control-label" for="crash_detection">&nbsp;&nbsp;{{ translate('serverConfig', 'serverCrashDetection', data['lang']) }}</label>
+                      <small class="form-text text-muted">Automatically restarts the server when it stops and captures crash logs for debugging.</small>
                       {% end %}
                     </div>
                   </div>
