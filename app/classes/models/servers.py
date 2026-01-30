@@ -28,6 +28,7 @@ class Servers(BaseModel):
     path = CharField(default="")
     executable = CharField(default="")
     log_path = CharField(default="")
+    log_file_pattern = CharField(default="")
     execution_command = CharField(default="")
     auto_start = BooleanField(default=0)
     auto_start_delay = IntegerField(default=10)

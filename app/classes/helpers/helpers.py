@@ -890,6 +890,63 @@ class Helpers:
         return lines
 
     @staticmethod
+    def resolve_log_file_pattern(server_path: str, pattern: str):
+        """
+        Resolve a log file pattern to an actual file path.
+        
+        Args:
+            server_path: The base server directory path
+            pattern: A glob pattern or regex pattern for log files
+            
+        Returns:
+            tuple: (resolved_path, error_message)
+                - resolved_path: The path to the most recent matching file, or None if no match
+                - error_message: An error message if resolution failed, or None if successful
+        """
+        import glob as glob_module
+        
+        if not pattern:
+            return None, "No pattern specified"
+            
+        try:
+            # Convert server_path to Path object
+            base_path = pathlib.Path(server_path)
+            
+            # Check if pattern is absolute or relative
+            pattern_path = pathlib.Path(pattern)
+            if pattern_path.is_absolute():
+                search_pattern = str(pattern_path)
+            else:
+                search_pattern = str(base_path / pattern)
+            
+            # Use glob to find matching files
+            matching_files = glob_module.glob(search_pattern)
+            
+            if not matching_files:
+                logger.warning(f"No log files found matching pattern: {pattern}")
+                return None, f"No files found matching pattern: {pattern}"
+            
+            # Filter to only files (not directories)
+            matching_files = [f for f in matching_files if os.path.isfile(f)]
+            
+            if not matching_files:
+                logger.warning(f"No log files (only directories) found matching pattern: {pattern}")
+                return None, f"No files (only directories) found matching pattern: {pattern}"
+            
+            # Sort by modification time, newest first
+            matching_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            
+            # Return the most recently modified file
+            resolved_file = matching_files[0]
+            logger.info(f"Resolved log file pattern '{pattern}' to: {resolved_file}")
+            return resolved_file, None
+            
+        except Exception as e:
+            error_msg = f"Error resolving log file pattern '{pattern}': {str(e)}"
+            logger.error(error_msg)
+            return None, error_msg
+
+    @staticmethod
     def check_writeable(path: str):
         filename = os.path.join(path, "tempfile.txt")
         try:

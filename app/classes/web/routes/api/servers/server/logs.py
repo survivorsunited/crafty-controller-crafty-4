@@ -63,10 +63,31 @@ class ApiServersServerLogsHandler(BaseApiHandler):
 
         if read_log_file:
             log_lines = self.helper.get_setting("max_log_lines")
-            raw_lines = self.helper.tail_file(
+            
+            # Determine the log file path
+            log_file_path = None
+            
+            # Check if a log file pattern is configured
+            if server_data.get("log_file_pattern"):
+                # Try to resolve the pattern to an actual file
+                resolved_path, error = self.helper.resolve_log_file_pattern(
+                    server_data["path"], 
+                    server_data["log_file_pattern"]
+                )
+                if resolved_path:
+                    log_file_path = resolved_path
+                else:
+                    logger.warning(f"Failed to resolve log pattern for server {server_id}: {error}")
+                    # Fall back to log_path if pattern resolution fails
+                    log_file_path = pathlib.Path(server_data["path"], server_data["log_path"])
+            else:
+                # Use traditional log_path
                 # If the log path is absolute it returns it as is
                 # If it is relative it joins the paths below like normal
-                pathlib.Path(server_data["path"], server_data["log_path"]),
+                log_file_path = pathlib.Path(server_data["path"], server_data["log_path"])
+            
+            raw_lines = self.helper.tail_file(
+                log_file_path,
                 log_lines,
             )
 
