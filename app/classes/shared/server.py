@@ -1049,6 +1049,43 @@ class ServerInstance:
         self.process.stdin.flush()
         return True
 
+    def capture_crash_logs(self):
+        """Capture server output logs and save them to a crash log file"""
+        try:
+            # Get the server's output buffer if it exists
+            if str(self.server_id) in ServerOutBuf.lines:
+                output_lines = ServerOutBuf.lines[str(self.server_id)]
+                
+                if output_lines:
+                    # Create timestamp for unique filename
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    crash_log_filename = f"crash_{self.server_id}_{timestamp}.log"
+                    
+                    # Ensure logs directory exists
+                    logs_dir = os.path.join(self.helper.root_dir, "logs")
+                    os.makedirs(logs_dir, exist_ok=True)
+                    
+                    crash_log_path = os.path.join(logs_dir, crash_log_filename)
+                    
+                    # Write the captured output to the crash log file
+                    with open(crash_log_path, "w", encoding="utf-8") as f:
+                        f.write(f"Crash Log for Server: {self.name} (ID: {self.server_id})\n")
+                        f.write(f"Timestamp: {timestamp}\n")
+                        f.write("=" * 80 + "\n\n")
+                        for line in output_lines:
+                            f.write(line + "\n")
+                    
+                    logger.info(f"Crash logs captured to: {crash_log_path}")
+                    Console.info(f"Crash logs saved to: {crash_log_filename}")
+                    return crash_log_path
+                else:
+                    logger.warning(f"No output buffer available for server {self.server_id}")
+            else:
+                logger.warning(f"No output buffer found for server {self.server_id}")
+        except Exception as e:
+            logger.error(f"Failed to capture crash logs for server {self.server_id}: {e}")
+        return None
+
     @callback
     def crash_detected(self, name):
         # clear the old scheduled watcher task
@@ -1063,6 +1100,9 @@ class ServerInstance:
         )
 
         if self.settings["crash_detection"]:
+            # Capture crash logs before restarting
+            self.capture_crash_logs()
+            
             logger.warning(
                 f"The server {name} has crashed and will be restarted. "
                 f"Restarting server"
@@ -1124,45 +1164,24 @@ class ServerInstance:
             Console.debug("Successfully found process. Resetting crash counter to 0")
             self.restart_count = 0
             return
-        # check the exit code -- This could be a fix for /stop
-        if str(self.process.returncode) in self.settings["ignored_exits"].split(","):
-            logger.warning(
-                f"Process {self.process.pid} exited with code "
-                f"{self.process.returncode}. This is considered a clean exit"
-                f" supressing crash handling."
-            )
-            # cancel the watcher task
-            self.server_scheduler.remove_job("c_" + str(self.server_id))
-            self.server_scheduler.remove_job("stats_" + str(self.server_id))
-            return
-
+        
+        # Server has stopped - capture logs and restart
+        logger.warning(
+            f"Server {self.name} has stopped. "
+            f"Capturing logs and restarting automatically."
+        )
+        
         self.stats_helper.sever_crashed()
-        # if we haven't tried to restart more 3 or more times
-        if self.restart_count <= 3:
-            # start the server if needed
-            server_restarted = self.crash_detected(self.name)
-
-            if server_restarted:
-                # add to the restart count
-                self.restart_count = self.restart_count + 1
-
-        # we have tried to restart 4 times...
-        elif self.restart_count == 4:
-            logger.critical(
-                f"Server {self.name} has been restarted {self.restart_count}"
-                f" times. It has crashed, not restarting."
-            )
-            Console.critical(
-                f"Server {self.name} has been restarted {self.restart_count}"
-                f" times. It has crashed, not restarting."
-            )
-
-            self.restart_count = 0
-            self.is_crashed = True
-            self.stats_helper.sever_crashed()
-
-            # cancel the watcher task
-            self.server_scheduler.remove_job("c_" + str(self.server_id))
+        
+        # Capture crash logs before restarting
+        self.capture_crash_logs()
+        
+        # Always restart the server when it stops
+        server_restarted = self.crash_detected(self.name)
+        
+        if server_restarted:
+            # add to the restart count for monitoring purposes
+            self.restart_count = self.restart_count + 1
 
     def remove_watcher_thread(self):
         logger.info("Removing old crash detection watcher thread")
