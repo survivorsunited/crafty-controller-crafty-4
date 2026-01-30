@@ -66,25 +66,26 @@ class ApiServersServerLogsHandler(BaseApiHandler):
             
             # Determine the log file path
             log_file_path = None
+            log_path = server_data["log_path"]
             
-            # Check if a log file pattern is configured
-            if server_data.get("log_file_pattern"):
+            # Check if log_path contains glob patterns (* or ?)
+            if log_path and ("*" in log_path or "?" in log_path):
                 # Try to resolve the pattern to an actual file
                 resolved_path, error = self.helper.resolve_log_file_pattern(
                     server_data["path"], 
-                    server_data["log_file_pattern"]
+                    log_path
                 )
                 if resolved_path:
                     log_file_path = resolved_path
                 else:
                     logger.warning(f"Failed to resolve log pattern for server {server_id}: {error}")
-                    # Fall back to log_path if pattern resolution fails
-                    log_file_path = pathlib.Path(server_data["path"], server_data["log_path"])
+                    # Fall back to using the pattern as-is (may fail, but that's expected)
+                    log_file_path = pathlib.Path(server_data["path"], log_path)
             else:
                 # Use traditional log_path
                 # If the log path is absolute it returns it as is
                 # If it is relative it joins the paths below like normal
-                log_file_path = pathlib.Path(server_data["path"], server_data["log_path"])
+                log_file_path = pathlib.Path(server_data["path"], log_path)
             
             raw_lines = self.helper.tail_file(
                 log_file_path,

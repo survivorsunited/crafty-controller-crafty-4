@@ -33,11 +33,6 @@ server_patch_schema = {
             "minLength": 1,
             "error": "serverLogPath",
         },
-        "log_file_pattern": {
-            "type": "string",
-            "error": "typeString",
-            "fill": True,
-        },
         "execution_command": {
             "type": "string",
             "minLength": 1,
