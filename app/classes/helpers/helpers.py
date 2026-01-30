@@ -1,6 +1,7 @@
 import base64
 import contextlib
 import ctypes
+import glob
 import html
 import itertools
 import json
@@ -903,8 +904,6 @@ class Helpers:
                 - resolved_path: The path to the most recent matching file, or None if no match
                 - error_message: An error message if resolution failed, or None if successful
         """
-        import glob as glob_module
-        
         if not pattern:
             return None, "No pattern specified"
             
@@ -920,7 +919,7 @@ class Helpers:
                 search_pattern = str(base_path / pattern)
             
             # Use glob to find matching files
-            matching_files = glob_module.glob(search_pattern)
+            matching_files = glob.glob(search_pattern)
             
             if not matching_files:
                 logger.warning(f"No log files found matching pattern: {pattern}")
@@ -936,8 +935,17 @@ class Helpers:
             # Sort by modification time, newest first
             matching_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
             
-            # Return the most recently modified file
+            # Get the most recently modified file
             resolved_file = matching_files[0]
+            
+            # Validate that the resolved file is within the server directory
+            try:
+                Helpers.validate_traversal(server_path, resolved_file)
+            except ValueError as e:
+                error_msg = f"Path traversal detected in resolved file: {str(e)}"
+                logger.error(error_msg)
+                return None, error_msg
+            
             logger.info(f"Resolved log file pattern '{pattern}' to: {resolved_file}")
             return resolved_file, None
             

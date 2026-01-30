@@ -4,13 +4,7 @@ import peewee
 
 def migrate(migrator, database, **kwargs):
     migrator.add_columns("servers", log_file_pattern=peewee.CharField(default=""))
-    """
-    Write your migrations here.
-    """
 
 
 def rollback(migrator, database, **kwargs):
     migrator.drop_columns("servers", ["log_file_pattern"])
-    """
-    Write your rollback migrations here.
-    """

@@ -115,3 +115,61 @@ def test_resolve_log_file_pattern_absolute_path(tmp_path) -> None:
     assert error is None
     assert resolved is not None
     assert Path(resolved).name == "absolute.log"
+
+
+def test_resolve_log_file_pattern_rejects_parent_traversal(tmp_path) -> None:
+    """Test that patterns attempting to traverse to parent directories are rejected"""
+    server_path = tmp_path / "server"
+    server_path.mkdir()
+    
+    # Create a file outside the server directory
+    outside_file = tmp_path / "outside.log"
+    outside_file.write_text("outside content")
+    
+    # Try to use a pattern that would match files outside server directory
+    pattern = "../outside.log"
+    resolved, error = Helpers.resolve_log_file_pattern(str(server_path), pattern)
+    
+    # Should either fail to match or fail traversal validation
+    assert resolved is None or error is not None
+    if error:
+        assert "traversal" in error.lower() or "no files found" in error.lower()
+
+
+def test_resolve_log_file_pattern_rejects_absolute_outside_path(tmp_path) -> None:
+    """Test that absolute paths outside the server directory are rejected"""
+    server_path = tmp_path / "server"
+    server_path.mkdir()
+    
+    # Create a file outside the server directory
+    outside_path = tmp_path / "outside"
+    outside_path.mkdir()
+    outside_file = outside_path / "secret.log"
+    outside_file.write_text("secret content")
+    
+    # Try to use absolute path outside server directory
+    pattern = str(outside_file)
+    resolved, error = Helpers.resolve_log_file_pattern(str(server_path), pattern)
+    
+    # Should be rejected by traversal validation
+    assert resolved is None or error is not None
+    if error:
+        assert "traversal" in error.lower()
+
+
+def test_resolve_log_file_pattern_allows_subdirectories(tmp_path) -> None:
+    """Test that patterns can match files in subdirectories within the server path"""
+    server_path = tmp_path / "server"
+    server_path.mkdir()
+    logs_path = server_path / "logs" / "subdirectory"
+    logs_path.mkdir(parents=True)
+    log_file = logs_path / "nested.log"
+    log_file.write_text("nested content")
+    
+    # Pattern to match nested file
+    pattern = "logs/subdirectory/nested.log"
+    resolved, error = Helpers.resolve_log_file_pattern(str(server_path), pattern)
+    
+    assert error is None
+    assert resolved is not None
+    assert Path(resolved).name == "nested.log"
